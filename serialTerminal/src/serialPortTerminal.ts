@@ -82,7 +82,7 @@ class SerialPortTerminal implements ISerialPortTerminal {
         });
 
         this.serialport.addListener("data", (data) =>
-            this.terminal.write(data.toString())
+            this.terminal.write(this.terminalFormat(data.toString()))
         );
 
         this.serialport.on("close", () => {
@@ -236,6 +236,8 @@ class SerialPortTerminal implements ISerialPortTerminal {
 
     serialport: SerialPort;
     terminal: PseudoTerminal;
+
+    private terminalFormat = (text: string) => `${text.replace(/(\r?\n)/g, '\r\n')}`;
 
     private logUri: vscode.Uri = vscode.Uri.file("");
     private logCallBack: (data: any) => void = () => { };
