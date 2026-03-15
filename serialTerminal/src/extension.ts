@@ -1,23 +1,23 @@
 import * as vscode from 'vscode';
 import { registerCommands } from './commands';
-import { registerContextCallback } from './contextManager';
-import { registerSerialPortView } from './serialPortView';
-import { registerLogView } from './logView';
-import { registerScriptView } from './scriptView';
-import { registerReadOnlyDocument } from './readOnlyDcoument';
-import { registerSerialPortTerminalProfile } from './SerialTerminalProfileProvider';
+import { registerContextCallback } from './context/context';
+import { registerSerialPortView } from './view/serialPortView';
+import { registerLogView } from './view/logView';
+import { registerScriptView } from './view/scriptView';
+import { registerSetting } from './context/setting';
+import { registerSerialPortTerminalProfile } from './terminal/provider';
 
-export var extensionContext: vscode.ExtensionContext;
+
 
 export function activate(context: vscode.ExtensionContext) {
-	extensionContext = context;
-	registerCommands(context);
-	registerSerialPortView(context);
-	registerLogView(context);
-	registerScriptView(context);
-	registerContextCallback(context);
-	registerReadOnlyDocument(context);
-	registerSerialPortTerminalProfile(context);
+    registerSetting(context);
+    registerContextCallback(context);
+    registerCommands(context);
+    registerSerialPortView(context);
+    registerLogView(context);
+    registerScriptView(context);
+    registerSerialPortTerminalProfile(context);
+
 }
 
 export function deactivate() { }

@@ -82,70 +82,69 @@
     "menus": {
       "view/title": [
         {
-          "command": "serialport.refreshSerialPortView",
+          "command": "serialTerminal.serialView.refresh",
           "when": "view == serialport.serialportView",
           "group": "navigation@2"
         },
         {
-          "command": "serialport.openSerialPortConfigaration",
+          "command": "serialTerminal.setting.SerialPort",
           "when": "view == serialport.serialportView",
           "group": "navigation@1"
         },
         {
-          "command": "serialport.openLogConfigaration",
+          "command": "serialTerminal.setting.Log",
           "when": "view == serialport.logs",
           "group": "navigation@1"
         },
         {
-          "command": "serialTerminal.revealLogs",
+          "command": "serialTerminal.logView.revealLogs",
           "when": "view == serialport.logs",
-          "group": "navigation@3"
+          "group": "navigation@2"
         },
         {
-          "command": "serialTerminal.createScriptNotebook",
+          "command": "serialTerminal.scriptView.newNotebook",
           "when": "view == serialport.scriptsNotebooks",
           "group": "navigation@1"
         },
         {
-          "command": "serialport.openScriptConfigaration",
+          "command": "serialTerminal.setting.Notebook",
           "when": "view == serialport.scriptsNotebooks",
           "group": "navigation@2"
         },
         {
-          "command": "serialTerminal.revealScriptNoteBooks",
+          "command": "serialTerminal.scriptView.revealNotebooks",
           "when": "view == serialport.scriptsNotebooks",
           "group": "navigation@4"
         },
         {
-          "command": "serialport.startSaveLog",
-          "when": "view == terminal && serialTerminal.serialPortTernimalFocus && !serialTerminal.serialPortTernimalRecordingLog",
+          "command": "serialTerminal.terminal.startSaveLog",
+          "when": "view == terminal && serialTerminal.terminal.focus && !serialTerminal.terminal.recordingLog",
           "group": "navigation"
         },
         {
-          "command": "serialport.stopSaveLog",
-          "when": "view == terminal && serialTerminal.serialPortTernimalFocus && serialTerminal.serialPortTernimalRecordingLog",
+          "command": "serialTerminal.terminal.stopSaveLog",
+          "when": "view == terminal && serialTerminal.terminal.focus && serialTerminal.terminal.recordingLog",
           "group": "navigation"
-        }
-        ,
+        },
         {
-          "command": "serialTerminal.clearTerminal",
+          "command": "serialTerminal.terminal.clear",
           "when": "view == terminal",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "serialTerminal.openSerialPort",
+          "command": "serialTerminal.serialView.open",
           "when": "view == serialport.serialportView",
           "group": "inline"
         },
         {
-          "command": "serialTerminal.revealInExplorer",
+          "command": "serialTerminal.treeItem.revealInExplorer",
           "when": "view == serialport.logs || view == serialport.scriptsNotebooks",
           "group": "navigation@1"
         },
         {
-          "command": "serialTerminal.deleteResource",
+          "command": "serialTerminal.treeItem.deleteResource",
           "when": "view == serialport.logs || view == serialport.scriptsNotebooks",
           "group": "navigation@2"
         }
@@ -153,89 +152,85 @@
     },
     "commands": [
       {
-        "command": "serialTerminal.openSerialPort",
-        "icon": "$(arrow-right)",
-        "title": "%commands.openSerialTerminal%"
-      },
-      {
-        "command": "serialport.refreshSerialPortView",
-        "icon": "$(sync)",
-        "title": "%commands.refreshView%"
-      },
-      {
-        "command": "serialport.openSerialPortConfigaration",
-        "icon": "$(gear)",
-        "title": "%commands.openSerialPortConfigaration%"
-      },
-      {
-        "command": "serialport.openLogConfigaration",
-        "icon": "$(gear)",
-        "title": "%commands.openLogConfigaration%"
-      },
-      {
-        "command": "serialTerminal.revealLogs",
-        "icon": "$(file-directory)",
-        "title": "%commands.revealInExplorer%"
-      },
-      {
-        "command": "serialport.openScriptConfigaration",
-        "icon": "$(gear)",
-        "title": "%commands.openScriptConfigaration%"
-      },
-      {
-        "command": "serialTerminal.revealScriptNoteBooks",
-        "icon": "$(file-directory)",
-        "title": "%commands.revealInExplorer%"
-      },
-      {
-        "command": "serialport.startSaveLog",
+        "command": "serialTerminal.terminal.startSaveLog",
         "icon": "$(save-as)",
-        "title": "%commands.startSaveLog%"
+        "title": "%commands.terminal.startSaveLog%"
       },
       {
-        "command": "serialport.stopSaveLog",
+        "command": "serialTerminal.terminal.stopSaveLog",
         "icon": "$(stop-circle)",
-        "title": "%commands.stopSaveLog%"
+        "title": "%commands.terminal.stopSaveLog%"
+      },
+      {
+        "command": "serialTerminal.terminal.clear",
+        "icon": "$(clear-all)",
+        "title": "%commands.terminal.clear%"
+      },
+      {
+        "command": "serialTerminal.setting.SerialPort",
+        "icon": "$(gear)",
+        "title": "%commands.setting.SerialPort%"
+      },
+      {
+        "command": "serialTerminal.setting.Log",
+        "icon": "$(gear)",
+        "title": "%commands.setting.Log%"
+      },
+      {
+        "command": "serialTerminal.setting.Notebook",
+        "icon": "$(gear)",
+        "title": "%commands.setting.Notebook%"
       },
       {
         "icon": "$(arrow-right)",
-        "command": "serialTerminal.openTreeItemResource",
-        "title": "%commands.openTreeItemResource%"
+        "command": "serialTerminal.treeItem.openOnEditor",
+        "title": "%commands.treeItem.openOnEditor%"
       },
       {
-        "command": "serialTerminal.revealInExplorer",
+        "command": "serialTerminal.treeItem.revealInExplorer",
         "icon": "$(file-directory)",
-        "title": "%commands.revealInExplorer%"
+        "title": "%commands.treeItem.revealInExplorer%"
       },
       {
-        "command": "serialTerminal.createScriptNotebook",
-        "icon": "$(new-file)",
-        "title": "%commands.createScriptNotebook%"
-      },
-      {
-        "command": "serialTerminal.deleteResource",
+        "command": "serialTerminal.treeItem.deleteResource",
         "icon": "$(trash)",
-        "title": "%commands.delete%"
+        "title": "%commands.treeItem.deleteResource%"
       },
       {
-        "command": "serialTerminal.viewReadOnlyDocument",
-        "title": "%commands.viewReadOnlyDocument%"
+        "command": "serialTerminal.serialView.open",
+        "icon": "$(arrow-right)",
+        "title": "%commands.serialView.open%"
       },
       {
-        "command": "serialTerminal.clearTerminal",
-        "icon": "$(clear-all)",
-        "title": "%commands.clearTerminal%"
+        "command": "serialTerminal.serialView.refresh",
+        "icon": "$(sync)",
+        "title": "%commands.serialView.refresh%"
       },
       {
-        "command": "doSomething",
-        "icon": "$(play)",
-        "title": "Serial Terminal test: do something"
+        "command": "serialTerminal.logView.openOnEditor",
+        "title": "%commands.logView.openOnEditor%"
+      },
+      {
+        "command": "serialTerminal.logView.revealLogs",
+        "icon": "$(file-directory)",
+        "title": "%commands.logView.revealLogs%"
+      },
+      {
+        "command": "serialTerminal.scriptView.newNotebook",
+        "icon": "$(new-file)",
+        "title": "%commands.scriptView.newNotebook%"
+      },
+      {
+        "command": "serialTerminal.scriptView.revealNotebooks",
+        "icon": "$(file-directory)",
+        "title": "%commands.scriptView.revealNotebooks%"
       }
     ],
     "configuration": {
       "title": "Serial Terminal",
       "properties": {
-        "SerialTerminal.serial port.configurations": {
+        "SerialTerminal.serialPort.configurations": {
+          "title": "%setting.serialPort.configurations.title%",
           "type": "array",
           "default": [
             "115200n1",
@@ -250,25 +245,37 @@
           ],
           "items": {
             "type": "string",
-            "pattern": "^(\\d+)(n|e|o|)(5|6|7|8|)(1|1.5|2|)$"
+            "pattern": "^(\\d+)((n|e|o)([5678])?(1|1.5|2)?)?$"
           },
-          "markdownDescription": "%configurations.serialPort.configurations.description%"
+          "markdownDescription": "%setting.serialPort.configurations.description%"
         },
         "SerialTerminal.log.savePath": {
-          "title": "%configurations.log.savePath.title%",
+          "title": "%setting.log.savePath.title%",
           "type": "string",
-          "markdownDescription": "%configurations.log.savePath.description%"
+          "markdownDescription": "%setting.log.savePath.description%"
         },
-        "SerialTerminal.script.savePath": {
-          "title": "%configurations.script.savePath.title%",
-          "type": "string",
-          "markdownDescription": "%configurations.script.savePath.description%"
-        },
-        "SerialTerminal.log.defaultAddingTimeStamp": {
-          "title": "%configurations.log.defaultAddingTimeStamp.title%",
+        "SerialTerminal.log.autoSave": {
+          "title": "%setting.log.autoSave.title%",
           "type": "boolean",
           "default": false,
-          "markdownDescription": "%configurations.log.defaultAddingTimeStamp.description%"
+          "markdownDescription": "%setting.log.autoSave.description%"
+        },
+        "SerialTerminal.log.timestamp.enable": {
+          "title": "%setting.log.timestamp.enable.title%",
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "%setting.log.timestamp.enable.description%"
+        },
+        "SerialTerminal.log.timestamp.duration": {
+          "title": "%setting.log.timestamp.duration.title%",
+          "type": "number",
+          "default": 20000000,
+          "markdownDescription": "%setting.log.timestamp.duration.description%"
+        },
+        "SerialTerminal.notebook.savePath": {
+          "title": "%setting.notebook.savePath.title%",
+          "type": "string",
+          "markdownDescription": "%setting.notebook.savePath.description%"
         }
       }
     }

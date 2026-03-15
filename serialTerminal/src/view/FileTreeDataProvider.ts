@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { ThemeIcon, Uri } from 'vscode';
+import { l10n, ThemeIcon, Uri } from 'vscode';
 
-class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
+class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     private filePatton: string;
     private uriGetter: (() => vscode.Uri);
     private options?: {
@@ -18,10 +18,11 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
         uriGetter: (() => vscode.Uri),
         options?: {
             readdirErrorMessagePrefix?: string,
-            command?: string
+            command?: string;
             icon?: string | Uri | { light: string | Uri; dark: string | Uri; } | ThemeIcon,
         }) {
-        this.filePatton = '(' + filePattons.join('|') + ')$';
+        this.filePatton = `(${filePattons.join('|')})$`;
+
         this.uriGetter = uriGetter;
         this.options = options;
         this._watcher = fs.watch(this.uriGetter().fsPath, () => {
@@ -68,7 +69,7 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
                     } else {
                         if (this.options?.command) {
                             item.command = {
-                                title: "View",
+                                title: l10n.t("View"),
                                 command: this.options.command,
                                 arguments: [item],
                             };

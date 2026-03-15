@@ -1,9 +1,10 @@
 {
   "please select a serial port": "请选择一个串口",
-  "please select a boud rate": "请选择一个波特率",
-  "({0}) CONNECTED": "{0} 已连接",
-  "({0}) OPEN FAILED!": "{0} 打开失败!",
-  "({0}) CLOSED!": "{0} 已断开!",
+  "please select a baudrate": "请选择一个波特率",
+  "{0} CONNECTED": "{0} 已连接",
+  "{0} DISCONNECTED": "{0} 已断开",
+  "{0} OPEN FAILED!": "{0} 打开失败!",
+  "{0} CONFIG CHANGED!": "{0} 配置已变更!",
   "$(plug) Serial Terminal": "$(plug) 串口终端",
   "Open a serial port on terminal": "在终端打开一个串口",
   "Log path error: ": "日志保存路径错误: ",
@@ -21,5 +22,8 @@
   "SerialNumber": "序列号",
   "PnpId": "即插即用ID",
   "LocationId": "硬件路径ID",
-  "Adding a new serial port configuration": "添加新的串口配置"
+  "Adding a new serial port configuration": "添加新的串口配置",
+  "Configuration for {0} is not set. Using default value: {1}": "{0} 未设置，使用默认值: {1}",
+  "Failed to create folder at {0}": "创建目录失败: {0}",
+  "View": "查看"
 }

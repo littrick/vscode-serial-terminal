@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { getLogDirUri } from './settingManager';
 import { FileTreeDataProvider } from './FileTreeDataProvider';
+import { setting } from '../context/setting';
 
 
 function registerLogView(context: vscode.ExtensionContext) {
@@ -9,9 +9,9 @@ function registerLogView(context: vscode.ExtensionContext) {
             "serialport.logs",
             new FileTreeDataProvider(
                 ['.txt', '.log'],
-                getLogDirUri,
+                () => setting.logSaveFolder,
                 {
-                    command: "serialTerminal.openTreeItemResource",
+                    command: "serialTerminal.logView.openOnEditor",
                     readdirErrorMessagePrefix: vscode.l10n.t("Log path error: "),
                     icon: new vscode.ThemeIcon("output"),
                 }

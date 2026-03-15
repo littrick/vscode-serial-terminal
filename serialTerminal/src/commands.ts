@@ -1,181 +1,123 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-
-import { pickConfiguration, pickSerialPort, updateSerialPortProvider } from './serialPortView';
-import { serialPortTerminalManager } from "./serialPortTerminalManager";
-import { setSerialPortTernimalRecordingLog } from './contextManager';
+import { updateSerialPortProvider } from './view/serialPortView';
 import { l10n } from 'vscode';
-import { getLogDirUri, getScriptDirUri, logSettingId, scriptSettingId, serialPortSettingId } from './settingManager';
+import { log } from './logger';
+import { logSettingId, scriptSettingId, serialPortSettingId, setting } from './context/setting';
+import { SerialTerminal, serialTerminalManager } from './terminal/serialTerminal';
+import * as picker from './view/picker';
 
 function registerCommands(context: vscode.ExtensionContext) {
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialTerminal.openSerialPort",
-            openSerialPort
-        )
-    );
+    /* eslint-disable @typescript-eslint/naming-convention */
+    const commands: { [key: string]: (...args: any[]) => any; } =
+    {
+        "serialTerminal.terminal.startSaveLog": startSaveLog,
+        "serialTerminal.terminal.stopSaveLog": stopSaveLog,
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            'serialport.openSerialTerminal',
-            openSerialPort
-        )
-    );
+        "serialTerminal.terminal.clear": () => vscode.commands.executeCommand("workbench.action.terminal.clear"),
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialport.refreshSerialPortView",
-            updateSerialPortProvider
-        )
-    );
+        "serialTerminal.setting.SerialPort": () => vscode.commands.executeCommand("workbench.action.openSettings", serialPortSettingId),
+        "serialTerminal.setting.Log": () => vscode.commands.executeCommand("workbench.action.openSettings", logSettingId),
+        "serialTerminal.setting.Notebook": () => vscode.commands.executeCommand("workbench.action.openSettings", scriptSettingId),
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialport.openSerialPortConfigaration",
-            () => { vscode.commands.executeCommand("workbench.action.openSettings", serialPortSettingId); })
-    );
+        "serialTerminal.treeItem.openOnEditor": openTreeItemResource,
+        "serialTerminal.treeItem.revealInExplorer": revealInExplorer,
+        "serialTerminal.treeItem.deleteResource": deleteResource,
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialport.openLogConfigaration",
-            () => { vscode.commands.executeCommand("workbench.action.openSettings", logSettingId); })
-    );
+        "serialTerminal.serialView.open": openSerialTerminal,
+        "serialTerminal.serialView.refresh": updateSerialPortProvider,
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialport.openScriptConfigaration",
-            () => { vscode.commands.executeCommand("workbench.action.openSettings", scriptSettingId); })
-    );
+        "serialTerminal.logView.openOnEditor": openLogOnEditor,
+        "serialTerminal.logView.revealLogs": async () => await vscode.commands.executeCommand("revealFileInOS", setting.logSaveFolder),
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialport.startSaveLog",
-            startSaveLog
-        )
-    );
+        "serialTerminal.scriptView.newNotebook": createScriptNotebook,
+        "serialTerminal.scriptView.revealNotebooks": async () => await vscode.commands.executeCommand("revealFileInOS", setting.noteBookFolder),
+    };
+    /* eslint-enable @typescript-eslint/naming-convention */
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialport.stopSaveLog",
-            stopSaveLog
-        )
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialTerminal.openTreeItemResource",
-            openTreeItemResource
-        )
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialTerminal.revealInExplorer",
-            revealInExplorer
-        )
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialTerminal.createScriptNotebook",
-            createScriptNotebook
-        )
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialTerminal.revealScriptNoteBooks",
-            () => vscode.commands.executeCommand("revealFileInOS", getScriptDirUri())
-        )
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialTerminal.revealLogs",
-            () => vscode.commands.executeCommand("revealFileInOS", getLogDirUri())
-        )
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialTerminal.deleteResource",
-            deleteResource
-        )
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialTerminal.viewReadOnlyDocument",
-            viewReadOnlyDocument
-        )
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "serialTerminal.clearTerminal",
-            clearTerminal,
-        )
-    );
-
-    vscode.commands.registerCommand("doSomething", async (context) => {
-    });
+    for (const [id, handler] of Object.entries(commands)) {
+        context.subscriptions.push(
+            vscode.commands.registerCommand(id, handler)
+        );
+    }
 }
 
-async function openSerialPort(context?: any) {
-    let portPath, cfg;
-    if (!context) {
-        portPath = await pickSerialPort();
+async function openSerialTerminal(context: { label: string; }) {
+    let exist = serialTerminalManager.getSerialPortTerminal(context.label);
+    if (exist) {
+        exist.show();
+        return;
+    }
+
+    let cfg = await picker.pickConfiguration();
+    if (!cfg) {
+        log.error("No configuration selected");
+        return;
+    }
+
+    let newTerminal: SerialTerminal;
+    if (setting.autoSaveLog) {
+        let logFile = await picker.pickLogFile(context.label);
+        if (!logFile) {
+            log.error("No log file selected");
+            return;
+        }
+
+        newTerminal = await serialTerminalManager.getOrCreateSerialPortTerminal(context.label, cfg);
+        await newTerminal.beginRecord(logFile);
     } else {
-        portPath = context.label;
+        newTerminal = await serialTerminalManager.getOrCreateSerialPortTerminal(context.label, cfg);
     }
+    newTerminal.show();
+}
 
-    let existTerminal = serialPortTerminalManager.getFromPortPath(portPath);
-    if (existTerminal?.serialport.isOpen) {
-        existTerminal.terminal.show();
+async function startSaveLog(context?: any) {
+    const terminal = vscode.window.activeTerminal;
+    if (!terminal) {
+        log.error("No active terminal");
         return;
     }
-    cfg = await pickConfiguration();
 
-    if (portPath && cfg) {
-        await serialPortTerminalManager.showSerialPortTerminal(portPath, cfg);
+    let exist = serialTerminalManager.getSerialPortTerminalByTerminal(terminal);
+    if (!exist) {
+        log.error("Active terminal is not a serial port terminal");
+        return;
+    }
+
+    let logFile = await picker.pickLogFile(exist.portName());
+    log.info(`Selected log file: ${logFile}`);
+
+    if (logFile) {
+        await exist.beginRecord(logFile);
     }
 }
 
-async function startSaveLog() {
+
+async function stopSaveLog(context?: any) {
     const terminal = vscode.window.activeTerminal;
     if (!terminal) {
+        log.error("No active terminal");
         return;
     }
 
-    const serialPortTerminal = serialPortTerminalManager.getFromTerminal(terminal);
-    if (!serialPortTerminal) {
+    let exist = serialTerminalManager.getSerialPortTerminalByTerminal(terminal);
+    if (!exist) {
+        log.error("Active terminal is not a serial port terminal");
         return;
     }
 
-    setSerialPortTernimalRecordingLog(await serialPortTerminal.startLogging());
-}
+    await exist.stopRecord();
 
-function stopSaveLog() {
-    const terminal = vscode.window.activeTerminal;
-
-    if (!terminal) {
-        return;
-    }
-
-    const serialPortTerminal = serialPortTerminalManager.getFromTerminal(terminal);
-    if (!serialPortTerminal) {
-        return;
-    }
-
-    setSerialPortTernimalRecordingLog(serialPortTerminal.stopLogging());
 }
 
 function openTreeItemResource(context: vscode.TreeItem) {
+    log.info(`Opening resource: ${context.resourceUri?.toString()}`);
     vscode.commands.executeCommand("vscode.open", context.resourceUri);
 }
 
-function revealInExplorer(context: vscode.TreeItem) {
-    vscode.commands.executeCommand("revealFileInOS", context.resourceUri);
+async function revealInExplorer(context: vscode.TreeItem) {
+    log.info(`Revealing in explorer: ${context.resourceUri?.toString()}`);
+    await vscode.commands.executeCommand("revealFileInOS", context.resourceUri);
 }
 
 async function createScriptNotebook() {
@@ -188,27 +130,27 @@ async function createScriptNotebook() {
         }
     });
     if (!fileName) {
+        log.info("Script notebook creation cancelled: No file name provided");
         return false;
     }
-    const scriptNotebookFile = vscode.Uri.joinPath(getScriptDirUri(), fileName + ".scrnb");
+
+    const scriptNotebookFile = vscode.Uri.joinPath(setting.noteBookFolder, fileName + ".scrnb");
     fs.writeFileSync(scriptNotebookFile.fsPath, "");
     vscode.commands.executeCommand("vscode.open", scriptNotebookFile);
 }
 async function deleteResource(context: vscode.TreeItem) {
     if (context.resourceUri) {
-        await vscode.workspace.fs.delete(context.resourceUri);
+        await vscode.workspace.fs.delete(context.resourceUri, { recursive: true, useTrash: true });
     }
 }
 
-async function viewReadOnlyDocument(uri: vscode.Uri) {
-    const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse('readonly:' + uri.path));
-    await vscode.window.showTextDocument(doc, { preview: false });
+async function openLogOnEditor(context: vscode.TreeItem) {
+    await vscode.commands.executeCommand("vscode.open", context.resourceUri);
+    let editor = vscode.window.activeTextEditor;
+    if (editor?.document.uri.toString() === context.resourceUri?.toString()) {
+        vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession");
+    }
 }
 
-function clearTerminal() {
-    vscode.commands.executeCommand(
-        "workbench.action.terminal.clear"
-    );
-}
 
 export { registerCommands };

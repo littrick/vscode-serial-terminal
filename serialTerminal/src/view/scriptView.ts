@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { getScriptDirUri } from './settingManager';
 import { FileTreeDataProvider } from './FileTreeDataProvider';
+import { setting } from '../context/setting';
 
 function registerScriptView(context: vscode.ExtensionContext) {
     context.subscriptions.push(
@@ -8,9 +8,9 @@ function registerScriptView(context: vscode.ExtensionContext) {
             "serialport.scriptsNotebooks",
             new FileTreeDataProvider(
                 ['.scrnb'],
-                getScriptDirUri,
+                () => setting.noteBookFolder,
                 {
-                    command: "serialTerminal.openTreeItemResource",
+                    command: "serialTerminal.treeItem.openOnEditor",
                     readdirErrorMessagePrefix: vscode.l10n.t("Script path error: "),
                     icon: new vscode.ThemeIcon("notebook"),
                 }
