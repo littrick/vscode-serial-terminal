@@ -1,10 +1,10 @@
 {
+    "setting.title": "Serial Terminal",
     "entryView.title": "Serial Port Resource Manager",
     "TreeView.serialPorts": "Available Serial Ports",
     "TreeView.logs": "Logs",
     "TreeView.scriptsNotebooks": "Scripts Notebooks",
     "serialPortTerminal": "Serial Port Terminal",
-    "commands.terminal.openSerialPort": "Open Serial Port Terminal",
     "commands.terminal.startSaveLog": "Start Saving Log",
     "commands.terminal.stopSaveLog": "Stop Saving Log",
     "commands.terminal.clear": "Clear Terminal",
@@ -29,9 +29,7 @@
     "setting.log.timestamp.enable.title": "Auto Add Timestamp",
     "setting.log.timestamp.enable.description": "Whether to automatically add timestamps",
     "setting.log.timestamp.duration.title": "Timestamp Interval",
-    "setting.log.timestamp.duration.description": "The minimum interval between timestamps when automatically adding timestamps, in seconds. Default is 20ms",
-    "setting.log.defaultAddingTimeStamp.title": "Default Add Timestamp",
-    "setting.log.defaultAddingTimeStamp.description": "Whether to add timestamps by default when starting log recording",
+    "setting.log.timestamp.duration.description": "The minimum interval between timestamps when automatically adding timestamps, in nanoseconds. Default is 20ms or 20000000ns.",
     "setting.notebook.savePath.title": "Notebook Save Path",
     "setting.notebook.savePath.description": "Set the path to save notebook files, e.g., `c:\\script`. If not set, it defaults to the `script` folder in the extension path."
 }
