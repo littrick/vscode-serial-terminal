@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { TextDecoder, TextEncoder } from 'util';
 
 interface ScriptNoteBookRaw {
     cells: ScriptNoteBookCell[],
@@ -15,16 +14,15 @@ function registerScriptNotebookSerializer(context: vscode.ExtensionContext) {
         vscode.workspace.registerNotebookSerializer(
             "scrnb",
             new (class implements vscode.NotebookSerializer {
-                async deserializeNotebook(content: Uint8Array, token: vscode.CancellationToken): Promise<vscode.NotebookData> {
-                    var contents = new TextDecoder().decode(content);
+                async deserializeNotebook(content: Uint8Array, _token: vscode.CancellationToken): Promise<vscode.NotebookData> {
+                    const contents = new TextDecoder().decode(content);
                     let raw: ScriptNoteBookCell[];
                     try {
-                        let tmp = (<ScriptNoteBookRaw>JSON.parse(contents)).cells;
-                        raw = tmp;
-                    } catch (error) {
+                        raw = (<ScriptNoteBookRaw>JSON.parse(contents)).cells;
+                    } catch {
                         raw = [];
                     }
-                    const cells = raw ? raw.map(item =>
+                    const cells = raw.map(item =>
                         new vscode.NotebookCellData(
                             item.type === 'code' ?
                                 vscode.NotebookCellKind.Code :
@@ -32,13 +30,13 @@ function registerScriptNotebookSerializer(context: vscode.ExtensionContext) {
                             item.source.join('\n'),
                             item.type === 'code' ? 'shellscript' : 'markdown'
                         )
-                    ) : [];
+                    );
 
                     return new vscode.NotebookData(cells);
                 }
 
-                async serializeNotebook(data: vscode.NotebookData, token: vscode.CancellationToken): Promise<Uint8Array> {
-                    let contents: ScriptNoteBookRaw = { cells: [] };
+                async serializeNotebook(data: vscode.NotebookData, _token: vscode.CancellationToken): Promise<Uint8Array> {
+                    const contents: ScriptNoteBookRaw = { cells: [] };
                     for (const cell of data.cells) {
                         contents.cells.push({
                             type: cell.kind === vscode.NotebookCellKind.Code ? 'code' : 'markdown',

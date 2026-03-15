@@ -1,9 +1,9 @@
 {
   "name": "scriptnotebook",
-  "displayName": "script noteBook",
+  "displayName": "%displayName%",
   "publisher": "awsxxf",
   "version": "0.0.6",
-  "description": "vscode generic notebook surport with integrated terminal",
+  "description": "%description%",
   "extensionKind": [
     "ui"
   ],
@@ -27,39 +27,97 @@
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
+  "l10n": "./l10n",
   "contributes": {
     "notebooks": [
       {
         "type": "scrnb",
-        "displayName": "Script Notebook",
+        "displayName": "%notebooks.scrnb.displayName%",
         "selector": [
           {
             "filenamePattern": "*.scrnb"
           }
         ]
+      },
+      {
+        "type": "mdnb",
+        "displayName": "%notebooks.mdnb.displayName%",
+        "selector": [
+          {
+            "filenamePattern": "*.mdnb"
+          },
+          {
+            "filenamePattern": "*.md"
+          }
+        ]
       }
     ],
-    "commands": []
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceExtname =~ /\\.md|\\.mdnb/ && activeEditor == 'workbench.editors.files.textFileEditor'",
+          "command": "scriptNotebook.openWithNotebook",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceExtname =~ /\\.md|\\.mdnb/ && activeEditor == 'workbench.editor.notebook'",
+          "command": "scriptNotebook.openWithMarkdown",
+          "group": "navigation"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "scriptNotebook.openWithNotebook",
+        "title": "%commands.scriptNotebook.openWithNotebook.title%",
+        "icon": "$(notebook)"
+      },
+      {
+        "command": "scriptNotebook.openWithMarkdown",
+        "title": "%commands.scriptNotebook.openWithMarkdown.title%",
+        "icon": "$(notebook)"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "%configuration.title%",
+        "properties": {
+          "scriptNotebook.code.supports": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              "sh",
+              "txt",
+              "shellscript",
+              "plaintext",
+              ""
+            ],
+            "markdownDescription": "%configuration.code.supports.markdownDescription%"
+          }
+        }
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "lint": "eslint src --ext ts"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
-    "@types/mocha": "^10.0.1",
+    "@types/mocha": "^10.0.10",
     "@types/node": "16.x",
-    "@types/vscode": "^1.76.0",
-    "@typescript-eslint/eslint-plugin": "^5.59.1",
-    "@typescript-eslint/parser": "^5.59.1",
-    "eslint": "^8.39.0",
+    "@types/vscode": "1.76.0",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^8.57.1",
     "glob": "^8.1.0",
-    "mocha": "^10.2.0",
-    "typescript": "^5.0.4",
-    "@vscode/test-electron": "^2.3.0"
+    "mocha": "^10.8.2",
+    "typescript": "^5.9.3"
   }
 }
