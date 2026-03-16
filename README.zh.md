@@ -2,7 +2,7 @@
 
 > 在 VS Code 中直接完成串口连接、收发调试、日志记录与脚本化操作。
 
-[English Documentation](https://github.com/littrick/vscode-serial-terminal/blob/main/serialTerminal/README.md)
+[中文](https://github.com/littrick/vscode-serial-terminal/blob/main/README.zh.md)|[English](https://github.com/littrick/vscode-serial-terminal/blob/main/README.md)
 
 ---
 
@@ -41,12 +41,28 @@
 
 ## 🧩 核心特性
 
-- [x] 像终端一样与串口设备实时交互
-- [x] 保存并查看通信日志
-- [x] 支持自动为日志插入时间戳（在设置内开启）
+- [x] 终端式实时交互，串口收发响应更直观
+- [x] 支持通信日志保存与查看，便于复现与排查
+- [x] 支持自动插入时间戳（可在设置中开启）
 - [x] 支持自定义串口参数（含波特率）
-- [x] 提供脚本笔记本，提高调试效率
-- [x] 自动转换换行符，无需为CR/LF烦恼
+- [x] 提供脚本笔记本，提升重复调试效率
+- [x] 自动处理换行符，无需为 CR/LF 烦恼
+
+---
+
+## ❓ FAQ
+
+### Q: 接收到的数据乱码或者不显示怎么办？
+
+A: 可能是串口参数设置不正确，尤其是波特率。请确认设备的串口参数（如波特率、数据位、停止位、校验位）与扩展设置一致。
+
+### Q: 日志文件在哪里？
+
+A: 你可以从串口侧边栏的日志列表中查看已保存的日志文件，点击文件夹图标可以打开日志所在的文件夹，在设置界面可以自定义日志保存路径。
+
+### Q: Notebook是什么？
+
+A: Notebook（笔记本）是一种交互式文档，可以包含代码单元和文本单元。在串口扩展中，你可以使用Notebook来编写和执行串口交互脚本，自动化常见的调试任务。
 
 ---
 

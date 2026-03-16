@@ -2,7 +2,7 @@
 
 > Connect, debug, log, and automate serial communication directly inside VS Code.
 
-[Chinese Documentation](https://github.com/littrick/vscode-serial-terminal/blob/main/serialTerminal/README.zh.md)
+[中文](https://github.com/littrick/vscode-serial-terminal/blob/main/README.zh.md)|[English](https://github.com/littrick/vscode-serial-terminal/blob/main/README.md)
 
 ---
 
@@ -41,12 +41,12 @@
 
 ## 🧩 Core Features
 
-- [x] Real-time serial interaction in a terminal-like workflow
-- [x] Save and view communication logs
-- [x] Automatically add timestamps to logs (enable it in settings)
-- [x] Customize serial parameters (including baud rate)
-- [x] Script notebook support for efficient debugging
-- [x] Automatically convert line endings, so you don't need to worry about CR/LF
+- [x] Terminal-style real-time interaction for direct serial send/receive
+- [x] Built-in communication log saving and viewing for easier troubleshooting
+- [x] Optional automatic timestamps for log entries (toggle in settings)
+- [x] Flexible serial parameter configuration (including baud rate)
+- [x] Script notebook support to speed up repetitive debugging tasks
+- [x] Automatic line-ending handling, so CR/LF differences are no longer a hassle
 
 ---
 
