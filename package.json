@@ -2,7 +2,7 @@
   "name": "serialterminal",
   "displayName": "serial terminal",
   "publisher": "awsxxf",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "An interactive serial terminal tool",
   "extensionKind": [
     "ui"
