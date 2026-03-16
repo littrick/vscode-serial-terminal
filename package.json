@@ -15,7 +15,7 @@
   "bugs": {
     "url": "https://github.com/littrick/vscode-serial-terminal/issues"
   },
-  "icon": "./assets/logo.png",
+  "icon": "assets/logo.png",
   "l10n": "./l10n",
   "keywords": [
     "serial port",
