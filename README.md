@@ -1,6 +1,6 @@
 # serial terminal extension for visual studio code
 
-[HomePage](https://github.com/AWSXXF/vscode-serial-terminal/blob/main/serialTerminal/README.md)
+[HomePage](https://github.com/littrick/vscode-serial-terminal/blob/main/serialTerminal/README.md)
 
 ---
 
