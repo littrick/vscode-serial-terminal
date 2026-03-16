@@ -9,11 +9,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/AWSXXF/vscode-serial-terminal.git"
+    "url": "https://github.com/littrick/vscode-serial-terminal.git"
   },
-  "homepage": "https://github.com/AWSXXF/vscode-serial-terminal/blob/main/serialTerminal/README.md",
+  "homepage": "https://github.com/littrick/vscode-serial-terminal/blob/main/serialTerminal/README.md",
   "bugs": {
-    "url": "https://github.com/AWSXXF/vscode-serial-terminal/issues"
+    "url": "https://github.com/littrick/vscode-serial-terminal/issues"
   },
   "icon": "./assets/logo.png",
   "l10n": "./l10n",
