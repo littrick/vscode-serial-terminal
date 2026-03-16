@@ -42,8 +42,14 @@ function registerCommands(context: vscode.ExtensionContext) {
     }
 }
 
-async function openSerialTerminal(context: { label: string; }) {
-    let exist = serialTerminalManager.getSerialPortTerminal(context.label);
+async function openSerialTerminal(context: any) {
+    const portName = context?.label ?? await picker.pickSerialPort();
+    if (!portName) {
+        log.error("No serial port selected");
+        return;
+    }
+
+    let exist = serialTerminalManager.getSerialPortTerminal(portName);
     if (exist) {
         exist.show();
         return;
@@ -57,16 +63,16 @@ async function openSerialTerminal(context: { label: string; }) {
 
     let newTerminal: SerialTerminal;
     if (setting.autoSaveLog) {
-        let logFile = await picker.pickLogFile(context.label);
+        let logFile = await picker.pickLogFile(portName);
         if (!logFile) {
             log.error("No log file selected");
             return;
         }
 
-        newTerminal = await serialTerminalManager.getOrCreateSerialPortTerminal(context.label, cfg);
+        newTerminal = await serialTerminalManager.getOrCreateSerialPortTerminal(portName, cfg);
         await newTerminal.beginRecord(logFile);
     } else {
-        newTerminal = await serialTerminalManager.getOrCreateSerialPortTerminal(context.label, cfg);
+        newTerminal = await serialTerminalManager.getOrCreateSerialPortTerminal(portName, cfg);
     }
     newTerminal.show();
 }
