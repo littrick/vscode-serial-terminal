@@ -1,0 +1,92 @@
+name: Release And Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      update_version:
+        type: choice
+        description: "Select the type of version update"
+        options:
+          - patch
+          - minor
+          - major
+          - prepatch
+          - preminor
+          - premajor
+          - prerelease
+          - specify
+        default: patch
+
+      is_prerelease:
+        type: boolean
+        description: "Is this a pre-release?"
+        default: false
+
+      specify_version:
+        type: string
+        description: "Specify a custom version (overrides update_version)"
+        default: ""
+
+jobs:
+  Package:
+    runs-on: ubuntu-latest
+    env:
+      NEW_VERSION: ""
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Bump Version
+      id: bump_version
+      run: |
+        if [ "${{ github.event.inputs.update_version }}" = "specify" ]; then
+          echo "Using specified version: ${{ github.event.inputs.specify_version }}"
+          npm version ${{ github.event.inputs.specify_version }}
+        else
+          echo "Bumping version: ${{ github.event.inputs.update_version }}"
+          NEW_VERSION=$(npm version ${{ github.event.inputs.update_version }} -m "Bump version to %s")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+        fi
+    - name: Setup Nodejs
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Install vsce
+      run: npm install -g vsce
+
+    - name: Packaging
+      run: vsce package
+
+    - name: Publish
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      run: |
+        echo "Publishing version ${{ env.NEW_VERSION || github.event.inputs.specify_version }}"
+        if [ "${{ github.event.inputs.is_prerelease }}" = "true" ]; then
+          vsce publish --pre-release
+        else
+          vsce publish
+        fi
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        branch: ${{ github.ref_name }}
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ env.NEW_VERSION || github.event.inputs.specify_version }}
+        name: Release ${{ env.NEW_VERSION || github.event.inputs.specify_version }}
+        draft: false
+        prerelease: ${{ github.event.inputs.is_prerelease }}
+        files: ./*.vsix
