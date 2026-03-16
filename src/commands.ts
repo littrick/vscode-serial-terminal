@@ -134,7 +134,7 @@ async function createScriptNotebook() {
         return false;
     }
 
-    const scriptNotebookFile = vscode.Uri.joinPath(setting.noteBookFolder, fileName + ".scrnb");
+    const scriptNotebookFile = vscode.Uri.joinPath(setting.noteBookFolder, fileName + ".mdnb");
     fs.writeFileSync(scriptNotebookFile.fsPath, "");
     vscode.commands.executeCommand("vscode.open", scriptNotebookFile);
 }

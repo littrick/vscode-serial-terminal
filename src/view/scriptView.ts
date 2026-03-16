@@ -7,7 +7,7 @@ function registerScriptView(context: vscode.ExtensionContext) {
         vscode.window.registerTreeDataProvider(
             "serialport.scriptsNotebooks",
             new FileTreeDataProvider(
-                ['.scrnb'],
+                ['.scrnb', '.mdnb', '.md'],
                 () => setting.noteBookFolder,
                 {
                     command: "serialTerminal.treeItem.openOnEditor",
