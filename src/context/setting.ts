@@ -36,8 +36,8 @@ class Setting {
 
     update() {
         // 检查 logSaveFolder 和 noteBookFolder 是否存在，如果不存在则创建
-        this.logSaveFolder = Uri.parse(this.getConfigOrDefault(logSaveFolderKey, this.logSaveFolder.path));
-        this.noteBookFolder = Uri.parse(this.getConfigOrDefault(noteBookFolderKey, this.noteBookFolder.path));
+        this.logSaveFolder = Uri.file(this.getConfigOrDefault(logSaveFolderKey, this.logSaveFolder.path));
+        this.noteBookFolder = Uri.file(this.getConfigOrDefault(noteBookFolderKey, this.noteBookFolder.path));
         this.timeStampDurationNs = this.getConfigOrDefault(timeStampDurationKey, this.timeStampDurationNs);
         this.portConfigurations = this.getConfigOrDefault(portConfigurationsKey, this.portConfigurations);
         this.autoSaveLog = this.getConfigOrDefault(autoSaveLogKey, this.autoSaveLog);
