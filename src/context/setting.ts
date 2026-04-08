@@ -14,7 +14,16 @@ const addingTimeStampKey = `${logSettingId}.timestamp.enable`;
 const timeStampDurationKey = `${logSettingId}.timestamp.duration`;
 const noteBookFolderKey = `${scriptSettingId}.savePath`;
 
-class Setting {
+interface ISetting {
+    portConfigurations: Array<string>;
+    logSaveFolder: Uri;
+    noteBookFolder: Uri;
+    autoSaveLog: boolean;
+    addingTimeStamp: boolean;
+    timeStampDurationNs: number;
+}
+
+class Setting implements ISetting {
     portConfigurations: Array<string> = [
         "9600n1",
         "115200n1",
@@ -22,26 +31,35 @@ class Setting {
     logSaveFolder: Uri = Uri.joinPath(
         Uri.file(homedir()),
         "serialTerminal",
-        'scriptNoteBook'
+        'log'
     );
     noteBookFolder: Uri = Uri.joinPath(
         Uri.file(homedir()),
         "serialTerminal",
-        'terminalLog'
+        'notebook'
     );
 
     autoSaveLog: boolean = false;
     addingTimeStamp: boolean = false;
     timeStampDurationNs: number = 20_000_000; // 20ms
 
+    readonly default: ISetting = {
+        portConfigurations: this.portConfigurations,
+        logSaveFolder: this.logSaveFolder,
+        noteBookFolder: this.noteBookFolder,
+        autoSaveLog: this.autoSaveLog,
+        addingTimeStamp: this.addingTimeStamp,
+        timeStampDurationNs: this.timeStampDurationNs,
+    };
+
     update() {
         // 检查 logSaveFolder 和 noteBookFolder 是否存在，如果不存在则创建
-        this.logSaveFolder = Uri.parse(this.getConfigOrDefault(logSaveFolderKey, this.logSaveFolder.path));
-        this.noteBookFolder = Uri.parse(this.getConfigOrDefault(noteBookFolderKey, this.noteBookFolder.path));
-        this.timeStampDurationNs = this.getConfigOrDefault(timeStampDurationKey, this.timeStampDurationNs);
-        this.portConfigurations = this.getConfigOrDefault(portConfigurationsKey, this.portConfigurations);
-        this.autoSaveLog = this.getConfigOrDefault(autoSaveLogKey, this.autoSaveLog);
-        this.addingTimeStamp = this.getConfigOrDefault(addingTimeStampKey, this.addingTimeStamp);
+        this.logSaveFolder = Uri.file(this.getConfigOrDefault(logSaveFolderKey, this.default.logSaveFolder.path));
+        this.noteBookFolder = Uri.file(this.getConfigOrDefault(noteBookFolderKey, this.default.noteBookFolder.path));
+        this.timeStampDurationNs = this.getConfigOrDefault(timeStampDurationKey, this.default.timeStampDurationNs);
+        this.portConfigurations = this.getConfigOrDefault(portConfigurationsKey, this.default.portConfigurations);
+        this.autoSaveLog = this.getConfigOrDefault(autoSaveLogKey, this.default.autoSaveLog);
+        this.addingTimeStamp = this.getConfigOrDefault(addingTimeStampKey, this.default.addingTimeStamp);
 
         log.info("Settings updated: ", this.fmt());
     }
@@ -90,7 +108,10 @@ function registerSetting(context: ExtensionContext) {
     context.subscriptions.push(
         workspace.onDidChangeConfiguration((event) => {
             log.info("Configuration changed, event: ", JSON.stringify(event));
-            setting.update();
+            // 创建异步的更新设置
+            setTimeout(() => {
+                setting.update();
+            }, 0);
         })
     );
     setting.update();
