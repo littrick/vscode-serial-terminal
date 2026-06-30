@@ -304,6 +304,6 @@
   },
   "dependencies": {
     "colors": "^1.4.0",
-    "serialport": "^11.0.1"
+    "serialport": "^13.0.0"
   }
 }
