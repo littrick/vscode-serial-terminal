@@ -2,7 +2,7 @@
   "name": "serialterminal",
   "displayName": "serial terminal",
   "publisher": "awsxxf",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "An interactive serial terminal tool",
   "extensionKind": [
     "ui"
@@ -305,5 +305,10 @@
   "dependencies": {
     "colors": "^1.4.0",
     "serialport": "^13.0.0"
+  },
+  "overrides": {
+    "serialport": {
+      "@serialport/bindings-cpp": "npm:@littrick/serialport-bindings-cpp@1.0.1"
+    }
   }
 }
