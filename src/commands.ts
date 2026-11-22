@@ -26,6 +26,7 @@ function registerCommands(context: vscode.ExtensionContext) {
         "serialTerminal.treeItem.deleteResource": deleteResource,
 
         "serialTerminal.serialView.open": openSerialTerminal,
+        "serialTerminal.serialView.openCustom": openCustomSerialTerminal,
         "serialTerminal.serialView.refresh": updateSerialPortProvider,
 
         "serialTerminal.logView.openOnEditor": openLogOnEditor,
@@ -52,6 +53,35 @@ async function openSerialTerminal(context: any) {
         return;
     }
 
+    await openSerialTerminalByPath(portName);
+}
+
+async function openCustomSerialTerminal() {
+    const portPath = (await vscode.window.showInputBox({
+        title: l10n.t("Please enter the serial port path"),
+        placeHolder: process.platform === 'win32' ? "COM3" : "/dev/ttyUSB0",
+        validateInput: (value) => {
+            const trimmed = value.trim();
+            if (!trimmed) {
+                return l10n.t("Serial port path cannot be empty");
+            }
+            if (/[\x00-\x1F]/.test(trimmed)) {
+                return l10n.t("Serial port path cannot contain line breaks");
+            }
+            return undefined;
+        }
+    }))?.trim();
+
+    if (!portPath) {
+        log.error("No serial port path provided");
+        return;
+    }
+
+    log.info(`Opening custom serial port: ${portPath}`);
+    await openSerialTerminalByPath(portPath);
+}
+
+async function openSerialTerminalByPath(portName: string) {
     let exist = serialTerminalManager.getSerialPortTerminal(portName);
     if (exist) {
         exist.show();

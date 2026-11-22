@@ -15,6 +15,7 @@
     "commands.treeItem.revealInExplorer": "Reveal in Explorer",
     "commands.treeItem.deleteResource": "Delete Resource",
     "commands.serialView.open": "Open Serial Port Terminal",
+    "commands.serialView.openCustom": "Open Custom Serial Port",
     "commands.serialView.refresh": "Refresh Serial Port List",
     "commands.logView.openOnEditor": "Open Log in Editor",
     "commands.logView.revealLogs": "Reveal Logs in Explorer",

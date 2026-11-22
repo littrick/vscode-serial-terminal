@@ -84,6 +84,11 @@
     "menus": {
       "view/title": [
         {
+          "command": "serialTerminal.serialView.openCustom",
+          "when": "view == serialport.serialportView",
+          "group": "navigation@1"
+        },
+        {
           "command": "serialTerminal.serialView.refresh",
           "when": "view == serialport.serialportView",
           "group": "navigation@2"
@@ -91,7 +96,7 @@
         {
           "command": "serialTerminal.setting.SerialPort",
           "when": "view == serialport.serialportView",
-          "group": "navigation@1"
+          "group": "navigation@3"
         },
         {
           "command": "serialTerminal.logView.newFolder",
@@ -262,6 +267,11 @@
         "command": "serialTerminal.serialView.open",
         "icon": "$(arrow-right)",
         "title": "%commands.serialView.open%"
+      },
+      {
+        "command": "serialTerminal.serialView.openCustom",
+        "icon": "$(add)",
+        "title": "%commands.serialView.openCustom%"
       },
       {
         "command": "serialTerminal.serialView.refresh",

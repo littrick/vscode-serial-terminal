@@ -32,5 +32,8 @@
   "File name cannot be empty": "文件名不能为空",
   "File name cannot be . or ..": "文件名不能是 . 或 ..",
   "File name cannot contain any of these characters: \\ / : * ? \" < > |": "文件名不能包含这些字符: \\ / : * ? \" < > |",
-  "File name cannot end with a space or dot": "文件名不能以空格或点结尾"
+  "File name cannot end with a space or dot": "文件名不能以空格或点结尾",
+  "Please enter the serial port path": "请输入串口路径",
+  "Serial port path cannot be empty": "串口路径不能为空",
+  "Serial port path cannot contain line breaks": "串口路径不能包含换行符"
 }
