@@ -15,6 +15,7 @@ class SerialTerminal {
     private isPty: boolean;
     private logFile: Uri | undefined;
     private onClose: () => void = () => { };
+    private onStateChange: () => void = () => { };
 
     private constructor(portPath: string, serialport: SerialPort, terminal: Terminal, isPty: boolean) {
         this.isPty = isPty;
@@ -23,12 +24,14 @@ class SerialTerminal {
 
         serialport.addListener('open', () => {
             terminal.write(SerialTerminal.connectedFormat(portPath, cfg));
+            this.onStateChange();
         });
         serialport.addListener('data', (data) => {
             terminal.write(SerialTerminal.terminalFormat(data.toString()));
         });
         serialport.addListener('close', () => {
             terminal.write(SerialTerminal.disconnectedFormat(portPath, cfg));
+            this.onStateChange();
         });
 
         terminal.addListener('close', () => {
@@ -210,8 +213,16 @@ class SerialTerminal {
         return !!this.recording;
     }
 
+    isOpen(): boolean {
+        return this.serialport.isOpen;
+    }
+
     setOnCloseCallback(callback: () => void) {
         this.onClose = callback;
+    }
+
+    setOnStateChangeCallback(callback: () => void) {
+        this.onStateChange = callback;
     }
 
     // for debug
@@ -220,6 +231,8 @@ class SerialTerminal {
 
 class SerialTerminalManager {
     private terminals: Map<string, SerialTerminal> = new Map();
+    private changeEmitter = new EventEmitter<void>();
+    readonly onDidChangeTerminals = this.changeEmitter.event;
 
     async getOrCreateSerialPortTerminal(portPath: string, cfg: Configuration, isPty: boolean = false): Promise<SerialTerminal> {
         let exist = this.terminals.get(portPath);
@@ -228,15 +241,19 @@ class SerialTerminalManager {
 
             await exist.updateSerial(cfg);
             await exist.show();
+            this.changeEmitter.fire();
             return exist;
         }
         var serialTerminal = await SerialTerminal.new(portPath, cfg, isPty);
         serialTerminal.setOnCloseCallback(() => {
             log.info(`Serial terminal for port ${portPath} closed, removing from manager`);
             this.terminals.delete(portPath);
+            this.changeEmitter.fire();
         });
+        serialTerminal.setOnStateChangeCallback(() => this.changeEmitter.fire());
 
         this.terminals.set(portPath, serialTerminal);
+        this.changeEmitter.fire();
         return serialTerminal;
     }
 

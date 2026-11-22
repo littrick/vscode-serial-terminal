@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
-import { Event, ProviderResult, ThemeIcon, TreeDataProvider, TreeItem, l10n } from "vscode";
+import { Event, ProviderResult, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem, l10n } from "vscode";
 import { listSerialPort, serialInfoToString } from "../serial/serialInfo";
+import { serialTerminalManager } from "../terminal/serialTerminal";
 import { compareNames } from "../utils";
 
 
@@ -8,7 +9,8 @@ function registerSerialPortView(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.window.createTreeView("serialport.serialportView", {
             treeDataProvider: serialPortProvider,
-        })
+        }),
+        serialTerminalManager.onDidChangeTerminals(() => serialPortProvider.update())
     );
 }
 
@@ -30,14 +32,17 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
                     const treeItem = [...ports]
                         .sort((a, b) => compareNames(a.path, b.path))
                         .map((port) => {
-                        return {
-                            id: port.path,
-                            label: port.path,
-                            description: (port as any).friendlyName || port.manufacturer,
-                            tooltip: serialInfoToString(port),
-                            iconPath: new ThemeIcon("plug"),
-                        };
-                    });
+                            const info = (port as any).friendlyName || port.manufacturer;
+                            const isOpen = serialTerminalManager.getSerialPortTerminal(port.path)?.isOpen() ?? false;
+                            return {
+                                id: port.path,
+                                label: port.path,
+                                description: info,
+                                tooltip: serialInfoToString(port),
+                                iconPath: new ThemeIcon("plug", isOpen ? new ThemeColor("charts.green") : undefined),
+                                contextValue: isOpen ? "serialPortOpened" : "serialPort",
+                            };
+                        });
                     resolve(treeItem);
                 })
                 .catch((error) => {
