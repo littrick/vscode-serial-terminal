@@ -26,28 +26,48 @@ on:
 jobs:
   Package:
     runs-on: ubuntu-latest
-    env:
-      NEW_VERSION: ""
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up Git
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
+    - name: Get Previous Tag
+      id: prev_tag
+      run: echo "tag=$(git describe --tags --abbrev=0 --exclude='*-pre' 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
+
     - name: Bump Version
       id: bump_version
       run: |
         if [ "${{ github.event.inputs.update_version }}" = "specify" ]; then
-          echo "Using specified version: ${{ github.event.inputs.specify_version }}"
-          npm version ${{ github.event.inputs.specify_version }}
+          TARGET="${{ github.event.inputs.specify_version }}"
+          echo "Using specified version: $TARGET"
         else
-          echo "Bumping version: ${{ github.event.inputs.update_version }}"
-          NEW_VERSION=$(npm version ${{ github.event.inputs.update_version }} -m "Bump version to %s")
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          TARGET="${{ github.event.inputs.update_version }}"
+          echo "Bumping version: $TARGET"
         fi
+        # 商店版本和 package.json 始终使用 X.Y.Z，预发布只体现在 tag 和 vsce 参数上
+        TARGET="${TARGET%-pre}"
+
+        if [ "${{ github.event.inputs.is_prerelease }}" = "true" ]; then
+          npm version "$TARGET" --no-git-tag-version
+          VERSION="v$(node -p "require('./package.json').version")"
+          git add package.json package-lock.json
+          git commit -m "Bump version to $VERSION"
+          TAG="${VERSION}-pre"
+          git tag "$TAG"
+        else
+          VERSION=$(npm version "$TARGET" -m "Bump version to %s")
+          TAG="$VERSION"
+        fi
+
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
     - name: Setup Nodejs
       uses: actions/setup-node@v4
       with:
@@ -66,7 +86,7 @@ jobs:
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
       run: |
-        echo "Publishing version ${{ env.NEW_VERSION || github.event.inputs.specify_version }}"
+        echo "Publishing version ${{ steps.bump_version.outputs.version }}"
         if [ "${{ github.event.inputs.is_prerelease }}" = "true" ]; then
           vsce publish --pre-release
         else
@@ -78,11 +98,28 @@ jobs:
       with:
         branch: ${{ github.ref_name }}
 
+    - name: Push Tag
+      run: git push origin "${{ steps.bump_version.outputs.tag }}"
+
+    - name: Build Changelog Link
+      id: changelog
+      run: |
+        NEW_TAG="${{ steps.bump_version.outputs.tag }}"
+        PREV_TAG="${{ steps.prev_tag.outputs.tag }}"
+        if [ -n "$PREV_TAG" ]; then
+          URL="${{ github.server_url }}/${{ github.repository }}/compare/${PREV_TAG}...${NEW_TAG}"
+        else
+          URL="${{ github.server_url }}/${{ github.repository }}/commits/${NEW_TAG}"
+        fi
+        echo "url=$URL" >> "$GITHUB_OUTPUT"
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ env.NEW_VERSION || github.event.inputs.specify_version }}
-        name: Release ${{ env.NEW_VERSION || github.event.inputs.specify_version }}
+        tag_name: ${{ steps.bump_version.outputs.tag }}
+        name: Release ${{ steps.bump_version.outputs.tag }}
+        body: |
+          **Full Changelog**: ${{ steps.changelog.outputs.url }}
         draft: false
         prerelease: ${{ github.event.inputs.is_prerelease }}
         files: ./*.vsix
