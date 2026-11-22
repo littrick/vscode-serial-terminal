@@ -5,7 +5,9 @@ import { listSerialPort, serialInfoToString } from "../serial/serialInfo";
 
 function registerSerialPortView(context: vscode.ExtensionContext) {
     context.subscriptions.push(
-        vscode.window.registerTreeDataProvider("serialport.serialportView", serialPortProvider)
+        vscode.window.createTreeView("serialport.serialportView", {
+            treeDataProvider: serialPortProvider,
+        })
     );
 }
 
