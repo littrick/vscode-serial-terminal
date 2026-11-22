@@ -5,6 +5,7 @@ import { portConfigurationsKey, setting } from "../context/setting";
 import { log } from "../logger";
 import { SerialPortCfg } from "../serial/serialConfiguration";
 import * as utils from "../utils";
+import { validateFileName } from "./fileNameValidation";
 
 
 async function pickSerialPort(): Promise<string | undefined> {
@@ -92,17 +93,12 @@ async function pickLogFile(prefix: string): Promise<Uri | undefined> {
     let serialportPath = prefix.replace(/[\/\\:]/g, '_');
     let date = utils.getTimeStamp().replace(/[\/:]/g, '').replace(/ /g, '_');
 
-    let fileName = await window.showInputBox({
+    const fileName = (await window.showInputBox({
         title: l10n.t("Please enter the log file name"),
         value: `${serialportPath}_${date}`,
         valueSelection: [0, serialportPath.length],
-        prompt: l10n.t("Only letters, numbers, `_` and `-` are allowed"),
-        validateInput: (value: string) => {
-            const result = value.match(/^[0-9a-zA-Z_-]*$/g)?.toString();
-            return result ? undefined
-                : l10n.t("Only letters, numbers, `_` and `-` are allowed");
-        }
-    });
+        validateInput: validateFileName,
+    }))?.trim();
 
     return fileName ? Uri.joinPath(setting.logSaveFolder, fileName + ".log") : undefined;
 }

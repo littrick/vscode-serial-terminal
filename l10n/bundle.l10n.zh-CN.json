@@ -7,7 +7,6 @@
   "{0} CONFIG CHANGED!": "{0} 配置已变更!",
   "Log path error: ": "日志保存路径错误: ",
   "Script path error: ": "脚本保存路径错误: ",
-  "Only letters, numbers, `_` and `-` are allowed": "仅支持输入字母、数字、`_`和`-`",
   "Please enter the log file name": "请输入日志文件名",
   "Please enter the script notebook file name": "请输入脚本 Notebook 文件名",
   "Recording log": "正在记录日志",
@@ -29,5 +28,9 @@
   "Size: {0}": "大小: {0}",
   "Modified: {0}": "修改时间: {0}",
   "Please enter the folder name": "请输入文件夹名称",
-  "Failed to create folder {0}: {1}": "创建文件夹 {0} 失败: {1}"
+  "Failed to create folder {0}: {1}": "创建文件夹 {0} 失败: {1}",
+  "File name cannot be empty": "文件名不能为空",
+  "File name cannot be . or ..": "文件名不能是 . 或 ..",
+  "File name cannot contain any of these characters: \\ / : * ? \" < > |": "文件名不能包含这些字符: \\ / : * ? \" < > |",
+  "File name cannot end with a space or dot": "文件名不能以空格或点结尾"
 }

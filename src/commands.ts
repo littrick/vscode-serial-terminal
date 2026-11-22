@@ -6,6 +6,7 @@ import { log } from './logger';
 import { logSettingId, scriptSettingId, serialPortSettingId, setting } from './context/setting';
 import { SerialTerminal, serialTerminalManager } from './terminal/serialTerminal';
 import * as picker from './view/picker';
+import { validateFileName } from './view/fileNameValidation';
 
 function registerCommands(context: vscode.ExtensionContext) {
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -138,15 +139,10 @@ async function revealInExplorer(context: vscode.TreeItem) {
 }
 
 async function createFolder(root: vscode.Uri, refreshCommand: string) {
-    const name = await vscode.window.showInputBox({
+    const name = (await vscode.window.showInputBox({
         title: l10n.t("Please enter the folder name"),
-        prompt: l10n.t("Only letters, numbers, `_` and `-` are allowed"),
-        validateInput: (value) => {
-            const result = value.match(/^[0-9a-zA-Z_-]*$/g)?.toString();
-            return result ? undefined
-                : l10n.t("Only letters, numbers, `_` and `-` are allowed");
-        }
-    });
+        validateInput: validateFileName,
+    }))?.trim();
     if (!name) {
         return;
     }
@@ -160,14 +156,10 @@ async function createFolder(root: vscode.Uri, refreshCommand: string) {
 }
 
 async function createScriptNotebook() {
-    const fileName = await vscode.window.showInputBox({
+    const fileName = (await vscode.window.showInputBox({
         title: l10n.t("Please enter the script notebook file name"),
-        prompt: l10n.t("Only letters, numbers, `_` and `-` are allowed"),
-        validateInput: (value: string) => {
-            const result = value.match(/^[0-9a-zA-Z_-]*$/g)?.toString();
-            return result ? undefined : l10n.t("Only letters, numbers, `_` and `-` are allowed");
-        }
-    });
+        validateInput: validateFileName,
+    }))?.trim();
     if (!fileName) {
         log.info("Script notebook creation cancelled: No file name provided");
         return false;
