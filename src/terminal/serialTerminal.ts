@@ -7,11 +7,13 @@ import { setting } from "../context/setting";
 import { log } from "../logger";
 import * as utils from "../utils";
 import * as context from "../context/context";
+import { setLogRecording } from "../view/logDecoration";
 
 class SerialTerminal {
     private serialport: SerialPort;
     private terminal: Terminal;
     private isPty: boolean;
+    private logFile: Uri | undefined;
     private onClose: () => void = () => { };
 
     private constructor(portPath: string, serialport: SerialPort, terminal: Terminal, isPty: boolean) {
@@ -30,6 +32,9 @@ class SerialTerminal {
         });
 
         terminal.addListener('close', () => {
+            if (this.isRecordingLog()) {
+                this.stopRecord();
+            }
             serialport.close();
             this.onClose();
         });
@@ -133,6 +138,8 @@ class SerialTerminal {
         this.buildCallback(logFile);
         this.serialport.addListener('data', this.logCallback);
 
+        this.logFile = logFile;
+        setLogRecording(logFile, true);
         context.setSerialTerminalRecordingLog(true);
     }
 
@@ -144,6 +151,10 @@ class SerialTerminal {
 
         this.serialport.removeListener('data', this.logCallback);
         this.recording = undefined;
+        if (this.logFile) {
+            setLogRecording(this.logFile, false);
+            this.logFile = undefined;
+        }
         log.info("Stop recording log");
         context.setSerialTerminalRecordingLog(false);
     }

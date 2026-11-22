@@ -4,6 +4,7 @@ import { registerContextCallback } from './context/context';
 import { registerSerialPortView } from './view/serialPortView';
 import { registerLogView } from './view/logView';
 import { registerScriptView } from './view/scriptView';
+import { registerLogDecoration } from './view/logDecoration';
 import { registerSetting } from './context/setting';
 import { registerSerialPortTerminalProfile } from './terminal/provider';
 
@@ -16,6 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerSerialPortView(context);
     registerLogView(context);
     registerScriptView(context);
+    registerLogDecoration(context);
     registerSerialPortTerminalProfile(context);
 
 }

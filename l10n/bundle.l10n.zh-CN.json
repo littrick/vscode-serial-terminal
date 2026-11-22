@@ -10,6 +10,7 @@
   "Only letters, numbers, `_` and `-` are allowed": "仅支持输入字母、数字、`_`和`-`",
   "Please enter the log file name": "请输入日志文件名",
   "Please enter the script notebook file name": "请输入脚本 Notebook 文件名",
+  "Recording log": "正在记录日志",
   "Name": "名称",
   "Path": "路径",
   "Manufacturer": "厂商",
