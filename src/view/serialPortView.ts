@@ -31,7 +31,7 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
                 .then((ports) => {
                     const treeItem = [...ports]
                         .sort((a, b) => {
-                            // 可用性优先（Windows 下 USB 串口在前、蓝牙串口在后），同优先级按名称排序
+                            // 可用性优先（USB 串口在前、蓝牙串口在后），同优先级按名称排序
                             const priorityDiff = serialPortPriority(a) - serialPortPriority(b);
                             return priorityDiff !== 0 ? priorityDiff : compareNames(a.path, b.path);
                         })
