@@ -11,6 +11,7 @@ function registerScriptView(context: vscode.ExtensionContext) {
             command: "serialTerminal.treeItem.openOnEditor",
             readdirErrorMessagePrefix: vscode.l10n.t("Script path error: "),
             icon: new vscode.ThemeIcon("notebook"),
+            contextValuePrefix: "script",
         }
     );
     const view = vscode.window.createTreeView("serialport.scriptsNotebooks", {
@@ -23,7 +24,11 @@ function registerScriptView(context: vscode.ExtensionContext) {
             () => provider.refresh()
         ),
     });
-    context.subscriptions.push(view, provider);
+    context.subscriptions.push(
+        view,
+        provider,
+        vscode.commands.registerCommand("serialTerminal.scriptView.refresh", () => provider.refresh())
+    );
 }
 
 export { registerScriptView };

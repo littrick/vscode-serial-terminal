@@ -9,6 +9,7 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>, 
         readdirErrorMessagePrefix?: string,
         command?: string,
         icon?: string | Uri | { light: string | Uri; dark: string | Uri; } | ThemeIcon,
+        contextValuePrefix?: string,
     };
     private updateEmitter = new vscode.EventEmitter<void>();
     private watcher: vscode.FileSystemWatcher;
@@ -20,6 +21,7 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>, 
             readdirErrorMessagePrefix?: string,
             command?: string;
             icon?: string | Uri | { light: string | Uri; dark: string | Uri; } | ThemeIcon,
+            contextValuePrefix?: string,
         }) {
         this.filePatton = `(${filePattons.join('|')})$`;
 
@@ -75,8 +77,13 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>, 
                     let stats = fs.statSync(vscode.Uri.joinPath(dirUri, file).fsPath);
                     return stats.isDirectory() || stats.isFile() && file.match(this.filePatton);
                 }).map((file) => {
-                    const item = new vscode.TreeItem(vscode.Uri.joinPath(dirUri, file));
-                    if (item.resourceUri && fs.statSync(item.resourceUri?.fsPath).isDirectory()) {
+                    const uri = vscode.Uri.joinPath(dirUri, file);
+                    const isDirectory = fs.statSync(uri.fsPath).isDirectory();
+                    const item = new vscode.TreeItem(uri);
+                    if (this.options?.contextValuePrefix) {
+                        item.contextValue = `${this.options.contextValuePrefix}${isDirectory ? 'Folder' : 'File'}`;
+                    }
+                    if (isDirectory) {
                         item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
                     } else {
                         if (this.options?.command) {

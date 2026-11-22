@@ -145,9 +145,20 @@ async function createScriptNotebook() {
     vscode.commands.executeCommand("vscode.open", scriptNotebookFile);
 }
 async function deleteResource(context: vscode.TreeItem) {
-    if (context.resourceUri) {
-        await vscode.workspace.fs.delete(context.resourceUri, { recursive: true, useTrash: true });
+    if (!context.resourceUri) {
+        return;
     }
+    const name = context.resourceUri.path.split('/').pop() ?? context.resourceUri.fsPath;
+    const deleteLabel = l10n.t("Delete");
+    const confirm = await vscode.window.showWarningMessage(
+        l10n.t("Delete {0}?", name),
+        { modal: true },
+        deleteLabel
+    );
+    if (confirm !== deleteLabel) {
+        return;
+    }
+    await vscode.workspace.fs.delete(context.resourceUri, { recursive: true, useTrash: true });
 }
 
 async function openLogOnEditor(context: vscode.TreeItem) {

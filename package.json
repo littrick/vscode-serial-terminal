@@ -104,6 +104,11 @@
           "group": "navigation@2"
         },
         {
+          "command": "serialTerminal.logView.refresh",
+          "when": "view == serialport.logs",
+          "group": "navigation@3"
+        },
+        {
           "command": "serialTerminal.scriptView.newNotebook",
           "when": "view == serialport.scriptsNotebooks",
           "group": "navigation@1"
@@ -112,6 +117,11 @@
           "command": "serialTerminal.setting.Notebook",
           "when": "view == serialport.scriptsNotebooks",
           "group": "navigation@2"
+        },
+        {
+          "command": "serialTerminal.scriptView.refresh",
+          "when": "view == serialport.scriptsNotebooks",
+          "group": "navigation@3"
         },
         {
           "command": "serialTerminal.scriptView.revealNotebooks",
@@ -141,14 +151,54 @@
           "group": "inline"
         },
         {
-          "command": "serialTerminal.treeItem.revealInExplorer",
-          "when": "view == serialport.logs || view == serialport.scriptsNotebooks",
-          "group": "navigation@1"
+          "command": "serialTerminal.logView.openOnEditor",
+          "when": "view == serialport.logs && viewItem == logFile",
+          "group": "inline@1"
         },
         {
           "command": "serialTerminal.treeItem.deleteResource",
-          "when": "view == serialport.logs || view == serialport.scriptsNotebooks",
+          "when": "view == serialport.logs && viewItem == logFile",
+          "group": "inline@2"
+        },
+        {
+          "command": "serialTerminal.logView.openOnEditor",
+          "when": "view == serialport.logs && viewItem == logFile",
+          "group": "navigation@1"
+        },
+        {
+          "command": "serialTerminal.treeItem.revealInExplorer",
+          "when": "view == serialport.logs && viewItem =~ /^log(File|Folder)$/",
           "group": "navigation@2"
+        },
+        {
+          "command": "serialTerminal.treeItem.deleteResource",
+          "when": "view == serialport.logs && viewItem =~ /^log(File|Folder)$/",
+          "group": "navigation@3"
+        },
+        {
+          "command": "serialTerminal.treeItem.openOnEditor",
+          "when": "view == serialport.scriptsNotebooks && viewItem == scriptFile",
+          "group": "inline@1"
+        },
+        {
+          "command": "serialTerminal.treeItem.deleteResource",
+          "when": "view == serialport.scriptsNotebooks && viewItem == scriptFile",
+          "group": "inline@2"
+        },
+        {
+          "command": "serialTerminal.treeItem.openOnEditor",
+          "when": "view == serialport.scriptsNotebooks && viewItem == scriptFile",
+          "group": "navigation@1"
+        },
+        {
+          "command": "serialTerminal.treeItem.revealInExplorer",
+          "when": "view == serialport.scriptsNotebooks && viewItem =~ /^script(File|Folder)$/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "serialTerminal.treeItem.deleteResource",
+          "when": "view == serialport.scriptsNotebooks && viewItem =~ /^script(File|Folder)$/",
+          "group": "navigation@3"
         }
       ]
     },
@@ -210,12 +260,18 @@
       },
       {
         "command": "serialTerminal.logView.openOnEditor",
+        "icon": "$(arrow-right)",
         "title": "%commands.logView.openOnEditor%"
       },
       {
         "command": "serialTerminal.logView.revealLogs",
         "icon": "$(file-directory)",
         "title": "%commands.logView.revealLogs%"
+      },
+      {
+        "command": "serialTerminal.logView.refresh",
+        "icon": "$(refresh)",
+        "title": "%commands.logView.refresh%"
       },
       {
         "command": "serialTerminal.scriptView.newNotebook",
@@ -226,6 +282,11 @@
         "command": "serialTerminal.scriptView.revealNotebooks",
         "icon": "$(file-directory)",
         "title": "%commands.scriptView.revealNotebooks%"
+      },
+      {
+        "command": "serialTerminal.scriptView.refresh",
+        "icon": "$(refresh)",
+        "title": "%commands.scriptView.refresh%"
       }
     ],
     "configuration": {

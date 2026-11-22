@@ -23,5 +23,7 @@
   "Configuration for {0} is not set. Using default value: {1}": "{0} 未设置，使用默认值: {1}",
   "Failed to create folder at {0}": "创建目录失败: {0}",
   "View": "查看",
-  "Failed to move {0}: {1}": "移动 {0} 失败: {1}"
+  "Failed to move {0}: {1}": "移动 {0} 失败: {1}",
+  "Delete {0}?": "删除 {0}？",
+  "Delete": "删除"
 }

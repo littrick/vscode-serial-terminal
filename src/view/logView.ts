@@ -12,6 +12,7 @@ function registerLogView(context: vscode.ExtensionContext) {
             command: "serialTerminal.logView.openOnEditor",
             readdirErrorMessagePrefix: vscode.l10n.t("Log path error: "),
             icon: new vscode.ThemeIcon("output"),
+            contextValuePrefix: "log",
         }
     );
     const view = vscode.window.createTreeView("serialport.logs", {
@@ -24,7 +25,11 @@ function registerLogView(context: vscode.ExtensionContext) {
             () => provider.refresh()
         ),
     });
-    context.subscriptions.push(view, provider);
+    context.subscriptions.push(
+        view,
+        provider,
+        vscode.commands.registerCommand("serialTerminal.logView.refresh", () => provider.refresh())
+    );
 }
 
 export { registerLogView };
