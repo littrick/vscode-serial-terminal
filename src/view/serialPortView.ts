@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { Event, ProviderResult, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem, l10n } from "vscode";
-import { listSerialPort, serialInfoToString } from "../serial/serialInfo";
+import { listSerialPort, serialInfoToString, serialPortPriority } from "../serial/serialInfo";
 import { serialTerminalManager } from "../terminal/serialTerminal";
 import { compareNames } from "../utils";
 
@@ -30,7 +30,11 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
             listSerialPort()
                 .then((ports) => {
                     const treeItem = [...ports]
-                        .sort((a, b) => compareNames(a.path, b.path))
+                        .sort((a, b) => {
+                            // 可用性优先（Windows 下 USB 串口在前、蓝牙串口在后），同优先级按名称排序
+                            const priorityDiff = serialPortPriority(a) - serialPortPriority(b);
+                            return priorityDiff !== 0 ? priorityDiff : compareNames(a.path, b.path);
+                        })
                         .map((port) => {
                             const info = (port as any).friendlyName || port.manufacturer;
                             const isOpen = serialTerminalManager.getSerialPortTerminal(port.path)?.isOpen() ?? false;

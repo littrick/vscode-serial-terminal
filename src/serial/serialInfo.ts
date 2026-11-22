@@ -16,6 +16,25 @@ async function listSerialPort(): Promise<SerialInfo[]> {
     return SerialPort.list();
 }
 
+/**
+ * 串口排序优先级，数字越小越靠前。
+ * Windows 下把真实的 USB 串口排在前面，蓝牙串口（通常只有配对的设备在线时才可用）放到最后。
+ */
+function serialPortPriority(port: SerialInfo): number {
+    if (process.platform !== 'win32') {
+        return 0;
+    }
+
+    const pnpId = (port.pnpId ?? '').toUpperCase();
+    if (pnpId.startsWith('USB\\')) {
+        return 0;
+    }
+    if (pnpId.startsWith('BTHENUM\\')) {
+        return 2;
+    }
+    return 1;
+}
+
 function serialInfoToString(serialInfo: SerialInfo): string {
     /* eslint-disable @typescript-eslint/naming-convention */
     let infoTable: { [key: string]: string | undefined; } = {
@@ -43,4 +62,5 @@ export {
     SerialInfo,
     serialInfoToString,
     listSerialPort,
+    serialPortPriority,
 };
