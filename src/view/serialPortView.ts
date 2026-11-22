@@ -28,6 +28,7 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
                 .then((ports) => {
                     const treeItem = ports.map((port) => {
                         return {
+                            id: port.path,
                             label: port.path,
                             description: (port as any).friendlyName || port.manufacturer,
                             tooltip: serialInfoToString(port),

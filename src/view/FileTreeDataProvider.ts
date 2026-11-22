@@ -2,6 +2,24 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { l10n, ThemeIcon, Uri } from 'vscode';
 
+function formatSize(bytes: number): string {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let value = bytes;
+    let unitIndex = 0;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
+        unitIndex++;
+    }
+    return `${unitIndex === 0 ? value : value.toFixed(1)} ${units[unitIndex]}`;
+}
+
+function formatModifiedTime(ms: number): string {
+    const date = new Date(ms);
+    const pad = (value: number) => value.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
+        + `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>, vscode.Disposable {
     private filePatton: string;
     private uriGetter: (() => vscode.Uri);
@@ -78,8 +96,23 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>, 
                     return stats.isDirectory() || stats.isFile() && file.match(this.filePatton);
                 }).map((file) => {
                     const uri = vscode.Uri.joinPath(dirUri, file);
-                    const isDirectory = fs.statSync(uri.fsPath).isDirectory();
+                    const stats = fs.statSync(uri.fsPath);
+                    const isDirectory = stats.isDirectory();
                     const item = new vscode.TreeItem(uri);
+                    item.id = uri.toString();
+
+                    const tooltip = new vscode.MarkdownString();
+                    tooltip.appendText(uri.fsPath);
+                    if (!isDirectory) {
+                        const size = formatSize(stats.size);
+                        const modified = formatModifiedTime(stats.mtimeMs);
+                        item.description = `${size} · ${modified}`;
+                        tooltip.appendMarkdown(
+                            `\n\n${l10n.t("Size: {0}", size)}\n\n${l10n.t("Modified: {0}", modified)}`
+                        );
+                    }
+                    item.tooltip = tooltip;
+
                     if (this.options?.contextValuePrefix) {
                         item.contextValue = `${this.options.contextValuePrefix}${isDirectory ? 'Folder' : 'File'}`;
                     }
