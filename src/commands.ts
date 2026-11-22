@@ -30,11 +30,11 @@ function registerCommands(context: vscode.ExtensionContext) {
         "serialTerminal.serialView.refresh": updateSerialPortProvider,
 
         "serialTerminal.logView.openOnEditor": openLogOnEditor,
-        "serialTerminal.logView.revealLogs": async () => await vscode.commands.executeCommand("revealFileInOS", setting.logSaveFolder),
+        "serialTerminal.logView.revealLogs": async () => await revealOrOpenInOS(setting.logSaveFolder),
         "serialTerminal.logView.newFolder": () => createFolder(setting.logSaveFolder, "serialTerminal.logView.refresh"),
 
         "serialTerminal.scriptView.newNotebook": createScriptNotebook,
-        "serialTerminal.scriptView.revealNotebooks": async () => await vscode.commands.executeCommand("revealFileInOS", setting.noteBookFolder),
+        "serialTerminal.scriptView.revealNotebooks": async () => await revealOrOpenInOS(setting.noteBookFolder),
         "serialTerminal.scriptView.newFolder": () => createFolder(setting.noteBookFolder, "serialTerminal.scriptView.refresh"),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -165,7 +165,28 @@ async function openTreeItemResource(context: vscode.TreeItem) {
 
 async function revealInExplorer(context: vscode.TreeItem) {
     log.info(`Revealing in explorer: ${context.resourceUri?.toString()}`);
-    await vscode.commands.executeCommand("revealFileInOS", context.resourceUri);
+    if (!context.resourceUri) {
+        return;
+    }
+    await revealOrOpenInOS(context.resourceUri);
+}
+
+// revealFileInOS 在 Windows 上对目录执行 explorer /select，会打开父目录并选中该目录；
+// 目录改为直接打开目录本身，文件仍使用 revealFileInOS 定位选中。
+async function revealOrOpenInOS(uri: vscode.Uri) {
+    try {
+        const stat = await vscode.workspace.fs.stat(uri);
+        if (stat.type & vscode.FileType.Directory) {
+            const opened = await vscode.env.openExternal(uri);
+            if (!opened) {
+                log.error(`Failed to open folder in OS: ${uri.toString()}`);
+            }
+            return;
+        }
+    } catch (err) {
+        log.error(`Failed to stat ${uri.toString()}: ${(err as Error).message}`);
+    }
+    await vscode.commands.executeCommand("revealFileInOS", uri);
 }
 
 async function createFolder(root: vscode.Uri, refreshCommand: string) {
