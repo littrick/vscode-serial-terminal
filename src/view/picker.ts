@@ -4,7 +4,7 @@ import { Configuration } from "../serial/serialPort";
 import { portConfigurationsKey, setting } from "../context/setting";
 import { log } from "../logger";
 import { SerialPortCfg } from "../serial/serialConfiguration";
-import * as utils from "../utils";
+import { validateFileName } from "./fileNameValidation";
 
 
 async function pickSerialPort(): Promise<string | undefined> {
@@ -89,20 +89,19 @@ function portPickConfigurations(): Thenable<CommandQuickPickItem[]> {
 }
 
 async function pickLogFile(prefix: string): Promise<Uri | undefined> {
-    let serialportPath = prefix.replace(/[\/\\:]/g, '_');
-    let date = utils.getTimeStamp().replace(/[\/:]/g, '').replace(/ /g, '_');
+    const serialportPath = prefix.replace(/[\/\\:]/g, '_');
+    const now = new Date();
+    const pad = (value: number) => value.toString().padStart(2, '0');
+    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const time = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+    const value = `${date}_${serialportPath}_${time}`;
 
-    let fileName = await window.showInputBox({
+    const fileName = (await window.showInputBox({
         title: l10n.t("Please enter the log file name"),
-        value: `${serialportPath}_${date}`,
-        valueSelection: [0, serialportPath.length],
-        prompt: l10n.t("Only letters, numbers, `_` and `-` are allowed"),
-        validateInput: (value: string) => {
-            const result = value.match(/^[0-9a-zA-Z_-]*$/g)?.toString();
-            return result ? undefined
-                : l10n.t("Only letters, numbers, `_` and `-` are allowed");
-        }
-    });
+        value: value,
+        valueSelection: [date.length + 1, date.length + 1 + serialportPath.length],
+        validateInput: validateFileName,
+    }))?.trim();
 
     return fileName ? Uri.joinPath(setting.logSaveFolder, fileName + ".log") : undefined;
 }

@@ -7,12 +7,15 @@ import { setting } from "../context/setting";
 import { log } from "../logger";
 import * as utils from "../utils";
 import * as context from "../context/context";
+import { setLogRecording } from "../view/logDecoration";
 
 class SerialTerminal {
     private serialport: SerialPort;
     private terminal: Terminal;
     private isPty: boolean;
+    private logFile: Uri | undefined;
     private onClose: () => void = () => { };
+    private onStateChange: () => void = () => { };
 
     private constructor(portPath: string, serialport: SerialPort, terminal: Terminal, isPty: boolean) {
         this.isPty = isPty;
@@ -21,15 +24,20 @@ class SerialTerminal {
 
         serialport.addListener('open', () => {
             terminal.write(SerialTerminal.connectedFormat(portPath, cfg));
+            this.onStateChange();
         });
         serialport.addListener('data', (data) => {
             terminal.write(SerialTerminal.terminalFormat(data.toString()));
         });
         serialport.addListener('close', () => {
             terminal.write(SerialTerminal.disconnectedFormat(portPath, cfg));
+            this.onStateChange();
         });
 
         terminal.addListener('close', () => {
+            if (this.isRecordingLog()) {
+                this.stopRecord();
+            }
             serialport.close();
             this.onClose();
         });
@@ -101,18 +109,31 @@ class SerialTerminal {
         return text;
     };
 
+    private static sanitizeLogText(text: string): string {
+        return text
+            .replace(/\x1B\][^\x07\x1B]*(?:\x07|\x1B\\)/g, '')   // OSC 序列
+            .replace(/\x1B\[[0-9;?]*[ -/]*[@-~]/g, '')            // CSI 序列（颜色等）
+            .replace(/\x1B[@-_]/g, '')                            // 其他 ESC 序列
+            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');    // 控制字符，保留 \t \n \r
+    }
+
+    private logText(data: Buffer): string {
+        const text = data.toString();
+        return setting.filterSpecialChars ? SerialTerminal.sanitizeLogText(text) : text;
+    }
+
     private buildCallback(logFile: Uri) {
         fs.writeFileSync(logFile.fsPath, '');
 
         if (!this.recording) { return; }
         if (this.recording.timestamp()) {
             this.logCallback = (data: Buffer) => {
-                const text = this.timeStampHandle(data.toString());
+                const text = this.timeStampHandle(this.logText(data));
                 fs.appendFileSync(logFile.fsPath, text);
             };
         } else {
             this.logCallback = (data: Buffer) => {
-                fs.appendFileSync(logFile.fsPath, data.toString());
+                fs.appendFileSync(logFile.fsPath, this.logText(data));
             };
         }
     }
@@ -133,6 +154,8 @@ class SerialTerminal {
         this.buildCallback(logFile);
         this.serialport.addListener('data', this.logCallback);
 
+        this.logFile = logFile;
+        setLogRecording(logFile, true);
         context.setSerialTerminalRecordingLog(true);
     }
 
@@ -144,6 +167,10 @@ class SerialTerminal {
 
         this.serialport.removeListener('data', this.logCallback);
         this.recording = undefined;
+        if (this.logFile) {
+            setLogRecording(this.logFile, false);
+            this.logFile = undefined;
+        }
         log.info("Stop recording log");
         context.setSerialTerminalRecordingLog(false);
     }
@@ -199,8 +226,16 @@ class SerialTerminal {
         return !!this.recording;
     }
 
+    isOpen(): boolean {
+        return this.serialport.isOpen;
+    }
+
     setOnCloseCallback(callback: () => void) {
         this.onClose = callback;
+    }
+
+    setOnStateChangeCallback(callback: () => void) {
+        this.onStateChange = callback;
     }
 
     // for debug
@@ -209,6 +244,8 @@ class SerialTerminal {
 
 class SerialTerminalManager {
     private terminals: Map<string, SerialTerminal> = new Map();
+    private changeEmitter = new EventEmitter<void>();
+    readonly onDidChangeTerminals = this.changeEmitter.event;
 
     async getOrCreateSerialPortTerminal(portPath: string, cfg: Configuration, isPty: boolean = false): Promise<SerialTerminal> {
         let exist = this.terminals.get(portPath);
@@ -217,15 +254,19 @@ class SerialTerminalManager {
 
             await exist.updateSerial(cfg);
             await exist.show();
+            this.changeEmitter.fire();
             return exist;
         }
         var serialTerminal = await SerialTerminal.new(portPath, cfg, isPty);
         serialTerminal.setOnCloseCallback(() => {
             log.info(`Serial terminal for port ${portPath} closed, removing from manager`);
             this.terminals.delete(portPath);
+            this.changeEmitter.fire();
         });
+        serialTerminal.setOnStateChangeCallback(() => this.changeEmitter.fire());
 
         this.terminals.set(portPath, serialTerminal);
+        this.changeEmitter.fire();
         return serialTerminal;
     }
 

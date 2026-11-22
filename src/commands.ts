@@ -6,6 +6,7 @@ import { log } from './logger';
 import { logSettingId, scriptSettingId, serialPortSettingId, setting } from './context/setting';
 import { SerialTerminal, serialTerminalManager } from './terminal/serialTerminal';
 import * as picker from './view/picker';
+import { validateFileName } from './view/fileNameValidation';
 
 function registerCommands(context: vscode.ExtensionContext) {
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -25,13 +26,16 @@ function registerCommands(context: vscode.ExtensionContext) {
         "serialTerminal.treeItem.deleteResource": deleteResource,
 
         "serialTerminal.serialView.open": openSerialTerminal,
+        "serialTerminal.serialView.openCustom": openCustomSerialTerminal,
         "serialTerminal.serialView.refresh": updateSerialPortProvider,
 
         "serialTerminal.logView.openOnEditor": openLogOnEditor,
         "serialTerminal.logView.revealLogs": async () => await vscode.commands.executeCommand("revealFileInOS", setting.logSaveFolder),
+        "serialTerminal.logView.newFolder": () => createFolder(setting.logSaveFolder, "serialTerminal.logView.refresh"),
 
         "serialTerminal.scriptView.newNotebook": createScriptNotebook,
         "serialTerminal.scriptView.revealNotebooks": async () => await vscode.commands.executeCommand("revealFileInOS", setting.noteBookFolder),
+        "serialTerminal.scriptView.newFolder": () => createFolder(setting.noteBookFolder, "serialTerminal.scriptView.refresh"),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -49,6 +53,35 @@ async function openSerialTerminal(context: any) {
         return;
     }
 
+    await openSerialTerminalByPath(portName);
+}
+
+async function openCustomSerialTerminal() {
+    const portPath = (await vscode.window.showInputBox({
+        title: l10n.t("Please enter the serial port path"),
+        placeHolder: process.platform === 'win32' ? "COM3" : "/dev/ttyUSB0",
+        validateInput: (value) => {
+            const trimmed = value.trim();
+            if (!trimmed) {
+                return l10n.t("Serial port path cannot be empty");
+            }
+            if (/[\x00-\x1F]/.test(trimmed)) {
+                return l10n.t("Serial port path cannot contain line breaks");
+            }
+            return undefined;
+        }
+    }))?.trim();
+
+    if (!portPath) {
+        log.error("No serial port path provided");
+        return;
+    }
+
+    log.info(`Opening custom serial port: ${portPath}`);
+    await openSerialTerminalByPath(portPath);
+}
+
+async function openSerialTerminalByPath(portName: string) {
     let exist = serialTerminalManager.getSerialPortTerminal(portName);
     if (exist) {
         exist.show();
@@ -116,9 +149,18 @@ async function stopSaveLog(context?: any) {
 
 }
 
-function openTreeItemResource(context: vscode.TreeItem) {
-    log.info(`Opening resource: ${context.resourceUri?.toString()}`);
-    vscode.commands.executeCommand("vscode.open", context.resourceUri);
+async function openTreeItemResource(context: vscode.TreeItem) {
+    if (!context.resourceUri) {
+        return;
+    }
+    log.info(`Opening resource: ${context.resourceUri.toString()}`);
+
+    // .md 默认由文本编辑器打开，开启设置后强制用 Script Notebook 的 md notebook 打开
+    if (setting.openMdAsNotebook && context.resourceUri.path.toLowerCase().endsWith('.md')) {
+        await vscode.commands.executeCommand("vscode.openWith", context.resourceUri, "mdnb");
+    } else {
+        await vscode.commands.executeCommand("vscode.open", context.resourceUri);
+    }
 }
 
 async function revealInExplorer(context: vscode.TreeItem) {
@@ -126,15 +168,28 @@ async function revealInExplorer(context: vscode.TreeItem) {
     await vscode.commands.executeCommand("revealFileInOS", context.resourceUri);
 }
 
+async function createFolder(root: vscode.Uri, refreshCommand: string) {
+    const name = (await vscode.window.showInputBox({
+        title: l10n.t("Please enter the folder name"),
+        validateInput: validateFileName,
+    }))?.trim();
+    if (!name) {
+        return;
+    }
+
+    try {
+        await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(root, name));
+        await vscode.commands.executeCommand(refreshCommand);
+    } catch (err) {
+        vscode.window.showErrorMessage(l10n.t("Failed to create folder {0}: {1}", name, (err as Error).message));
+    }
+}
+
 async function createScriptNotebook() {
-    const fileName = await vscode.window.showInputBox({
+    const fileName = (await vscode.window.showInputBox({
         title: l10n.t("Please enter the script notebook file name"),
-        prompt: l10n.t("Only letters, numbers, `_` and `-` are allowed"),
-        validateInput: (value: string) => {
-            const result = value.match(/^[0-9a-zA-Z_-]*$/g)?.toString();
-            return result ? undefined : l10n.t("Only letters, numbers, `_` and `-` are allowed");
-        }
-    });
+        validateInput: validateFileName,
+    }))?.trim();
     if (!fileName) {
         log.info("Script notebook creation cancelled: No file name provided");
         return false;
@@ -145,9 +200,20 @@ async function createScriptNotebook() {
     vscode.commands.executeCommand("vscode.open", scriptNotebookFile);
 }
 async function deleteResource(context: vscode.TreeItem) {
-    if (context.resourceUri) {
-        await vscode.workspace.fs.delete(context.resourceUri, { recursive: true, useTrash: true });
+    if (!context.resourceUri) {
+        return;
     }
+    const name = context.resourceUri.path.split('/').pop() ?? context.resourceUri.fsPath;
+    const deleteLabel = l10n.t("Delete");
+    const confirm = await vscode.window.showWarningMessage(
+        l10n.t("Delete {0}?", name),
+        { modal: true },
+        deleteLabel
+    );
+    if (confirm !== deleteLabel) {
+        return;
+    }
+    await vscode.workspace.fs.delete(context.resourceUri, { recursive: true, useTrash: true });
 }
 
 async function openLogOnEditor(context: vscode.TreeItem) {

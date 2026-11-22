@@ -1,21 +1,33 @@
 import * as vscode from 'vscode';
 import { FileTreeDataProvider } from './FileTreeDataProvider';
+import { FileDragAndDropController } from './fileDragAndDrop';
 import { setting } from '../context/setting';
 
 function registerScriptView(context: vscode.ExtensionContext) {
+    const provider = new FileTreeDataProvider(
+        ['.scrnb', '.mdnb', '.md'],
+        () => setting.noteBookFolder,
+        {
+            command: "serialTerminal.treeItem.openOnEditor",
+            readdirErrorMessagePrefix: vscode.l10n.t("Script path error: "),
+            icon: new vscode.ThemeIcon("notebook"),
+            contextValuePrefix: "script",
+        }
+    );
+    const view = vscode.window.createTreeView("serialport.scriptsNotebooks", {
+        treeDataProvider: provider,
+        showCollapseAll: true,
+        canSelectMany: true,
+        dragAndDropController: new FileDragAndDropController(
+            "application/vnd.code.tree.serialport.scriptsnotebooks",
+            () => setting.noteBookFolder,
+            () => provider.refresh()
+        ),
+    });
     context.subscriptions.push(
-        vscode.window.registerTreeDataProvider(
-            "serialport.scriptsNotebooks",
-            new FileTreeDataProvider(
-                ['.scrnb', '.mdnb', '.md'],
-                () => setting.noteBookFolder,
-                {
-                    command: "serialTerminal.treeItem.openOnEditor",
-                    readdirErrorMessagePrefix: vscode.l10n.t("Script path error: "),
-                    icon: new vscode.ThemeIcon("notebook"),
-                }
-            )
-        )
+        view,
+        provider,
+        vscode.commands.registerCommand("serialTerminal.scriptView.refresh", () => provider.refresh())
     );
 }
 

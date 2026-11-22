@@ -8,19 +8,27 @@ const logSettingId = 'SerialTerminal.log';
 const scriptSettingId = 'SerialTerminal.notebook';
 
 const portConfigurationsKey = `${serialPortSettingId}.configurations`;
+const serialPortAutoRefreshKey = `${serialPortSettingId}.autoRefresh`;
+const serialPortAutoRefreshIntervalKey = `${serialPortSettingId}.autoRefreshInterval`;
 const logSaveFolderKey = `${logSettingId}.savePath`;
 const autoSaveLogKey = `${logSettingId}.autoSave`;
 const addingTimeStampKey = `${logSettingId}.timestamp.enable`;
+const filterSpecialCharsKey = `${logSettingId}.filterSpecialChars`;
 const timeStampDurationKey = `${logSettingId}.timestamp.duration`;
 const noteBookFolderKey = `${scriptSettingId}.savePath`;
+const openMdAsNotebookKey = `${scriptSettingId}.openMdAsNotebook`;
 
 interface ISetting {
     portConfigurations: Array<string>;
+    serialPortAutoRefresh: boolean;
+    serialPortAutoRefreshInterval: number;
     logSaveFolder: Uri;
     noteBookFolder: Uri;
     autoSaveLog: boolean;
     addingTimeStamp: boolean;
+    filterSpecialChars: boolean;
     timeStampDurationNs: number;
+    openMdAsNotebook: boolean;
 }
 
 class Setting implements ISetting {
@@ -28,6 +36,8 @@ class Setting implements ISetting {
         "9600n1",
         "115200n1",
     ];
+    serialPortAutoRefresh: boolean = true;
+    serialPortAutoRefreshInterval: number = 2000;
     logSaveFolder: Uri = Uri.joinPath(
         Uri.file(homedir()),
         "serialTerminal",
@@ -41,15 +51,21 @@ class Setting implements ISetting {
 
     autoSaveLog: boolean = false;
     addingTimeStamp: boolean = false;
+    filterSpecialChars: boolean = true;
     timeStampDurationNs: number = 20_000_000; // 20ms
+    openMdAsNotebook: boolean = true;
 
     readonly default: ISetting = {
         portConfigurations: this.portConfigurations,
+        serialPortAutoRefresh: this.serialPortAutoRefresh,
+        serialPortAutoRefreshInterval: this.serialPortAutoRefreshInterval,
         logSaveFolder: this.logSaveFolder,
         noteBookFolder: this.noteBookFolder,
         autoSaveLog: this.autoSaveLog,
         addingTimeStamp: this.addingTimeStamp,
+        filterSpecialChars: this.filterSpecialChars,
         timeStampDurationNs: this.timeStampDurationNs,
+        openMdAsNotebook: this.openMdAsNotebook,
     };
 
     update() {
@@ -58,8 +74,15 @@ class Setting implements ISetting {
         this.noteBookFolder = Uri.file(this.getConfigOrDefault(noteBookFolderKey, this.default.noteBookFolder.path));
         this.timeStampDurationNs = this.getConfigOrDefault(timeStampDurationKey, this.default.timeStampDurationNs);
         this.portConfigurations = this.getConfigOrDefault(portConfigurationsKey, this.default.portConfigurations);
+        this.serialPortAutoRefresh = this.getConfigOrDefault(serialPortAutoRefreshKey, this.default.serialPortAutoRefresh);
+        this.serialPortAutoRefreshInterval = this.getConfigOrDefault(
+            serialPortAutoRefreshIntervalKey,
+            this.default.serialPortAutoRefreshInterval
+        );
         this.autoSaveLog = this.getConfigOrDefault(autoSaveLogKey, this.default.autoSaveLog);
         this.addingTimeStamp = this.getConfigOrDefault(addingTimeStampKey, this.default.addingTimeStamp);
+        this.filterSpecialChars = this.getConfigOrDefault(filterSpecialCharsKey, this.default.filterSpecialChars);
+        this.openMdAsNotebook = this.getConfigOrDefault(openMdAsNotebookKey, this.default.openMdAsNotebook);
 
         log.info("Settings updated: ", this.fmt());
     }
@@ -94,11 +117,15 @@ class Setting implements ISetting {
     fmt() {
         return `Setting:
         portConfigurations: ${JSON.stringify(this.portConfigurations)},
+        serialPortAutoRefresh: ${this.serialPortAutoRefresh},
+        serialPortAutoRefreshInterval: ${this.serialPortAutoRefreshInterval},
         logSaveFolder: ${this.logSaveFolder.fsPath},
         noteBookFolder: ${this.noteBookFolder.fsPath},
         autoSaveLog: ${this.autoSaveLog},
         addingTimeStamp: ${this.addingTimeStamp},
-        timeStampDurationNs: ${this.timeStampDurationNs}`;
+        filterSpecialChars: ${this.filterSpecialChars},
+        timeStampDurationNs: ${this.timeStampDurationNs},
+        openMdAsNotebook: ${this.openMdAsNotebook}`;
     }
 }
 
@@ -124,11 +151,15 @@ export {
     scriptSettingId,
 
     portConfigurationsKey,
+    serialPortAutoRefreshKey,
+    serialPortAutoRefreshIntervalKey,
     logSaveFolderKey,
     noteBookFolderKey,
     autoSaveLogKey,
     addingTimeStampKey,
+    filterSpecialCharsKey,
     timeStampDurationKey,
+    openMdAsNotebookKey,
     setting,
     registerSetting
 };

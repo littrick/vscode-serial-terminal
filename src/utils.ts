@@ -9,6 +9,12 @@ function getTimeStamp(): string {
     });
 }
 
+function compareNames(a: string, b: string): number {
+    // 大小写不敏感的自然排序，例如 2 < 10
+    return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+}
+
 export {
-    getTimeStamp
+    getTimeStamp,
+    compareNames,
 };

@@ -2,7 +2,7 @@
 
 > Connect, debug, log, and automate serial communication directly inside VS Code.
 
-[中文](https://github.com/littrick/vscode-serial-terminal/blob/main/README.zh.md)|[English](https://github.com/littrick/vscode-serial-terminal/blob/main/README.md)
+[中文](https://github.com/littrick/vscode-serial-terminal/blob/main/README.zh.md)|[English](https://github.com/littrick/vscode-serial-terminal/blob/main/README.md)|[FAQ](https://github.com/littrick/vscode-serial-terminal/blob/main/FAQ.md)
 
 ---
 
@@ -42,11 +42,35 @@
 ## 🧩 Core Features
 
 - [x] Terminal-style real-time interaction for direct serial send/receive
-- [x] Built-in communication log saving and viewing for easier troubleshooting
-- [x] Optional automatic timestamps for log entries (toggle in settings)
+- [x] Automatic serial port detection with hot-plug refresh; USB adapters are prioritized
+- [x] Open ports are highlighted, and any custom port path can be opened manually
+- [x] Built-in log saving and viewing, with optional timestamps and a recording indicator
+- [x] Script notebook support, including opening Markdown files as notebooks
 - [x] Flexible serial parameter configuration (including baud rate)
-- [x] Script notebook support to speed up repetitive debugging tasks
 - [x] Automatic line-ending handling, so CR/LF differences are no longer a hassle
+
+---
+
+## ⚙️ Settings
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `SerialTerminal.serialPort.configurations` | common presets | Configurations offered when opening a port (`baud[parity][data bits][stop bits]`) |
+| `SerialTerminal.serialPort.autoRefresh` | `true` | Watch for port plug/unplug and refresh the list automatically |
+| `SerialTerminal.serialPort.autoRefreshInterval` | `2000` | Polling interval in milliseconds (minimum 500) |
+| `SerialTerminal.log.savePath` | `$HOME/serialTerminal/log` | Log folder. Reload the window after changing it |
+| `SerialTerminal.log.autoSave` | `false` | Ask for a log file name when opening a port |
+| `SerialTerminal.log.timestamp.enable` | `false` | Add timestamps to log entries |
+| `SerialTerminal.log.timestamp.duration` | `20000000` | Timestamp interval in nanoseconds (20 ms) |
+| `SerialTerminal.log.filterSpecialChars` | `true` | Remove ANSI escape sequences and control characters from log files |
+| `SerialTerminal.notebook.savePath` | `$HOME/serialTerminal/notebook` | Notebook folder. Reload the window after changing it |
+| `SerialTerminal.notebook.openMdAsNotebook` | `true` | Open `.md` files from the Script Notebook view as notebooks |
+
+---
+
+## ❓ FAQ
+
+Common questions are answered in the [FAQ](https://github.com/littrick/vscode-serial-terminal/blob/main/FAQ.md).
 
 ---
 
