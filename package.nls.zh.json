@@ -33,5 +33,7 @@
     "setting.log.timestamp.duration.title": "时间戳间隔",
     "setting.log.timestamp.duration.description": "自动添加时间戳时，时间戳之间的最小间隔，单位为纳秒，默认为20ms即20000000ns",
     "setting.notebook.savePath.title": "Notebook 保存路径",
+    "setting.notebook.openMdAsNotebook.title": "以 Notebook 方式打开 Markdown 文件",
+    "setting.notebook.openMdAsNotebook.description": "从 Script Notebook 视图打开 `.md` 文件时，使用 Script Notebook 编辑器而不是文本编辑器打开。仅影响从此视图打开的文件。",
     "setting.notebook.savePath.description": "设置保存Notebook的目录路径, 设置后reload窗口后生效 \n - 路径的格式可以为: `c:\\notebook` 或者 `/C:/notebook` \n  - 如果设置为空，它将自动被设置为`$HOME/serialTerminal/notebook` \n - 点击`重设此设置`, 插件会自动重置此为默认路径 \n - 如果设置的目录不存在，插件会尝试创建该目录"
 }

@@ -339,6 +339,12 @@
           "title": "%setting.notebook.savePath.title%",
           "type": "string",
           "markdownDescription": "%setting.notebook.savePath.description%"
+        },
+        "SerialTerminal.notebook.openMdAsNotebook": {
+          "title": "%setting.notebook.openMdAsNotebook.title%",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%setting.notebook.openMdAsNotebook.description%"
         }
       }
     }

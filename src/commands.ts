@@ -116,9 +116,18 @@ async function stopSaveLog(context?: any) {
 
 }
 
-function openTreeItemResource(context: vscode.TreeItem) {
-    log.info(`Opening resource: ${context.resourceUri?.toString()}`);
-    vscode.commands.executeCommand("vscode.open", context.resourceUri);
+async function openTreeItemResource(context: vscode.TreeItem) {
+    if (!context.resourceUri) {
+        return;
+    }
+    log.info(`Opening resource: ${context.resourceUri.toString()}`);
+
+    // .md 默认由文本编辑器打开，开启设置后强制用 Script Notebook 的 md notebook 打开
+    if (setting.openMdAsNotebook && context.resourceUri.path.toLowerCase().endsWith('.md')) {
+        await vscode.commands.executeCommand("vscode.openWith", context.resourceUri, "mdnb");
+    } else {
+        await vscode.commands.executeCommand("vscode.open", context.resourceUri);
+    }
 }
 
 async function revealInExplorer(context: vscode.TreeItem) {

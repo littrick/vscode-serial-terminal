@@ -33,5 +33,7 @@
     "setting.log.timestamp.duration.title": "Timestamp Interval",
     "setting.log.timestamp.duration.description": "The minimum interval between timestamps when automatically adding timestamps, in nanoseconds. Default is 20ms or 20000000ns.",
     "setting.notebook.savePath.title": "Notebook Save Path",
+    "setting.notebook.openMdAsNotebook.title": "Open Markdown Files as Notebook",
+    "setting.notebook.openMdAsNotebook.description": "When opening a `.md` file from the Script Notebook view, open it with the Script Notebook editor instead of the text editor. This only affects files opened from the view.",
     "setting.notebook.savePath.description": "Set the directory path for saving Notebook files. Changes take effect after reloading the window.\n - Path format can be: `c:\\notebook` or `/C:/notebook`\n - If set to empty, it will be automatically set to `$HOME/serialTerminal/notebook`\n - Click `Reset Setting` to reset this to the default path\n - If the configured directory does not exist, the extension will try to create it"
 }

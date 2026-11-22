@@ -13,6 +13,7 @@ const autoSaveLogKey = `${logSettingId}.autoSave`;
 const addingTimeStampKey = `${logSettingId}.timestamp.enable`;
 const timeStampDurationKey = `${logSettingId}.timestamp.duration`;
 const noteBookFolderKey = `${scriptSettingId}.savePath`;
+const openMdAsNotebookKey = `${scriptSettingId}.openMdAsNotebook`;
 
 interface ISetting {
     portConfigurations: Array<string>;
@@ -21,6 +22,7 @@ interface ISetting {
     autoSaveLog: boolean;
     addingTimeStamp: boolean;
     timeStampDurationNs: number;
+    openMdAsNotebook: boolean;
 }
 
 class Setting implements ISetting {
@@ -42,6 +44,7 @@ class Setting implements ISetting {
     autoSaveLog: boolean = false;
     addingTimeStamp: boolean = false;
     timeStampDurationNs: number = 20_000_000; // 20ms
+    openMdAsNotebook: boolean = true;
 
     readonly default: ISetting = {
         portConfigurations: this.portConfigurations,
@@ -50,6 +53,7 @@ class Setting implements ISetting {
         autoSaveLog: this.autoSaveLog,
         addingTimeStamp: this.addingTimeStamp,
         timeStampDurationNs: this.timeStampDurationNs,
+        openMdAsNotebook: this.openMdAsNotebook,
     };
 
     update() {
@@ -60,6 +64,7 @@ class Setting implements ISetting {
         this.portConfigurations = this.getConfigOrDefault(portConfigurationsKey, this.default.portConfigurations);
         this.autoSaveLog = this.getConfigOrDefault(autoSaveLogKey, this.default.autoSaveLog);
         this.addingTimeStamp = this.getConfigOrDefault(addingTimeStampKey, this.default.addingTimeStamp);
+        this.openMdAsNotebook = this.getConfigOrDefault(openMdAsNotebookKey, this.default.openMdAsNotebook);
 
         log.info("Settings updated: ", this.fmt());
     }
@@ -98,7 +103,8 @@ class Setting implements ISetting {
         noteBookFolder: ${this.noteBookFolder.fsPath},
         autoSaveLog: ${this.autoSaveLog},
         addingTimeStamp: ${this.addingTimeStamp},
-        timeStampDurationNs: ${this.timeStampDurationNs}`;
+        timeStampDurationNs: ${this.timeStampDurationNs},
+        openMdAsNotebook: ${this.openMdAsNotebook}`;
     }
 }
 
@@ -129,6 +135,7 @@ export {
     autoSaveLogKey,
     addingTimeStampKey,
     timeStampDurationKey,
+    openMdAsNotebookKey,
     setting,
     registerSetting
 };
