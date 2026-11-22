@@ -94,19 +94,24 @@
           "group": "navigation@1"
         },
         {
-          "command": "serialTerminal.setting.Log",
+          "command": "serialTerminal.logView.newFolder",
           "when": "view == serialport.logs",
           "group": "navigation@1"
         },
         {
-          "command": "serialTerminal.logView.revealLogs",
+          "command": "serialTerminal.logView.refresh",
           "when": "view == serialport.logs",
           "group": "navigation@2"
         },
         {
-          "command": "serialTerminal.logView.refresh",
+          "command": "serialTerminal.logView.revealLogs",
           "when": "view == serialport.logs",
           "group": "navigation@3"
+        },
+        {
+          "command": "serialTerminal.setting.Log",
+          "when": "view == serialport.logs",
+          "group": "navigation@4"
         },
         {
           "command": "serialTerminal.scriptView.newNotebook",
@@ -114,7 +119,7 @@
           "group": "navigation@1"
         },
         {
-          "command": "serialTerminal.setting.Notebook",
+          "command": "serialTerminal.scriptView.newFolder",
           "when": "view == serialport.scriptsNotebooks",
           "group": "navigation@2"
         },
@@ -127,6 +132,11 @@
           "command": "serialTerminal.scriptView.revealNotebooks",
           "when": "view == serialport.scriptsNotebooks",
           "group": "navigation@4"
+        },
+        {
+          "command": "serialTerminal.setting.Notebook",
+          "when": "view == serialport.scriptsNotebooks",
+          "group": "navigation@5"
         },
         {
           "command": "serialTerminal.terminal.startSaveLog",
@@ -274,9 +284,19 @@
         "title": "%commands.logView.refresh%"
       },
       {
+        "command": "serialTerminal.logView.newFolder",
+        "icon": "$(new-folder)",
+        "title": "%commands.logView.newFolder%"
+      },
+      {
         "command": "serialTerminal.scriptView.newNotebook",
         "icon": "$(new-file)",
         "title": "%commands.scriptView.newNotebook%"
+      },
+      {
+        "command": "serialTerminal.scriptView.newFolder",
+        "icon": "$(new-folder)",
+        "title": "%commands.scriptView.newFolder%"
       },
       {
         "command": "serialTerminal.scriptView.revealNotebooks",

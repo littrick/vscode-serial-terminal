@@ -29,9 +29,11 @@ function registerCommands(context: vscode.ExtensionContext) {
 
         "serialTerminal.logView.openOnEditor": openLogOnEditor,
         "serialTerminal.logView.revealLogs": async () => await vscode.commands.executeCommand("revealFileInOS", setting.logSaveFolder),
+        "serialTerminal.logView.newFolder": () => createFolder(setting.logSaveFolder, "serialTerminal.logView.refresh"),
 
         "serialTerminal.scriptView.newNotebook": createScriptNotebook,
         "serialTerminal.scriptView.revealNotebooks": async () => await vscode.commands.executeCommand("revealFileInOS", setting.noteBookFolder),
+        "serialTerminal.scriptView.newFolder": () => createFolder(setting.noteBookFolder, "serialTerminal.scriptView.refresh"),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -133,6 +135,28 @@ async function openTreeItemResource(context: vscode.TreeItem) {
 async function revealInExplorer(context: vscode.TreeItem) {
     log.info(`Revealing in explorer: ${context.resourceUri?.toString()}`);
     await vscode.commands.executeCommand("revealFileInOS", context.resourceUri);
+}
+
+async function createFolder(root: vscode.Uri, refreshCommand: string) {
+    const name = await vscode.window.showInputBox({
+        title: l10n.t("Please enter the folder name"),
+        prompt: l10n.t("Only letters, numbers, `_` and `-` are allowed"),
+        validateInput: (value) => {
+            const result = value.match(/^[0-9a-zA-Z_-]*$/g)?.toString();
+            return result ? undefined
+                : l10n.t("Only letters, numbers, `_` and `-` are allowed");
+        }
+    });
+    if (!name) {
+        return;
+    }
+
+    try {
+        await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(root, name));
+        await vscode.commands.executeCommand(refreshCommand);
+    } catch (err) {
+        vscode.window.showErrorMessage(l10n.t("Failed to create folder {0}: {1}", name, (err as Error).message));
+    }
 }
 
 async function createScriptNotebook() {

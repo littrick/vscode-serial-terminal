@@ -27,5 +27,7 @@
   "Delete {0}?": "删除 {0}？",
   "Delete": "删除",
   "Size: {0}": "大小: {0}",
-  "Modified: {0}": "修改时间: {0}"
+  "Modified: {0}": "修改时间: {0}",
+  "Please enter the folder name": "请输入文件夹名称",
+  "Failed to create folder {0}: {1}": "创建文件夹 {0} 失败: {1}"
 }
