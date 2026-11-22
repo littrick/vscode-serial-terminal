@@ -37,6 +37,8 @@
     "setting.log.autoSave.description": "是否自动保存日志",
     "setting.log.timestamp.enable.title": "自动添加时间戳",
     "setting.log.timestamp.enable.description": "是否自动添加时间戳",
+    "setting.log.filterSpecialChars.title": "过滤日志中的特殊字符",
+    "setting.log.filterSpecialChars.description": "在日志文件中移除 ANSI 颜色/转义序列和控制字符（如 NUL），保留制表符和换行。",
     "setting.log.timestamp.duration.title": "时间戳间隔",
     "setting.log.timestamp.duration.description": "自动添加时间戳时，时间戳之间的最小间隔，单位为纳秒，默认为20ms即20000000ns",
     "setting.notebook.savePath.title": "Notebook 保存路径",

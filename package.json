@@ -378,6 +378,12 @@
           "default": 20000000,
           "markdownDescription": "%setting.log.timestamp.duration.description%"
         },
+        "SerialTerminal.log.filterSpecialChars": {
+          "title": "%setting.log.filterSpecialChars.title%",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%setting.log.filterSpecialChars.description%"
+        },
         "SerialTerminal.notebook.savePath": {
           "title": "%setting.notebook.savePath.title%",
           "type": "string",

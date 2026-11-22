@@ -62,6 +62,7 @@
 | `SerialTerminal.log.autoSave` | `false` | Ask for a log file name when opening a port |
 | `SerialTerminal.log.timestamp.enable` | `false` | Add timestamps to log entries |
 | `SerialTerminal.log.timestamp.duration` | `20000000` | Timestamp interval in nanoseconds (20 ms) |
+| `SerialTerminal.log.filterSpecialChars` | `true` | Remove ANSI escape sequences and control characters from log files |
 | `SerialTerminal.notebook.savePath` | `$HOME/serialTerminal/notebook` | Notebook folder. Reload the window after changing it |
 | `SerialTerminal.notebook.openMdAsNotebook` | `true` | Open `.md` files from the Script Notebook view as notebooks |
 

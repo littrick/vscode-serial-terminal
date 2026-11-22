@@ -13,6 +13,7 @@ const serialPortAutoRefreshIntervalKey = `${serialPortSettingId}.autoRefreshInte
 const logSaveFolderKey = `${logSettingId}.savePath`;
 const autoSaveLogKey = `${logSettingId}.autoSave`;
 const addingTimeStampKey = `${logSettingId}.timestamp.enable`;
+const filterSpecialCharsKey = `${logSettingId}.filterSpecialChars`;
 const timeStampDurationKey = `${logSettingId}.timestamp.duration`;
 const noteBookFolderKey = `${scriptSettingId}.savePath`;
 const openMdAsNotebookKey = `${scriptSettingId}.openMdAsNotebook`;
@@ -25,6 +26,7 @@ interface ISetting {
     noteBookFolder: Uri;
     autoSaveLog: boolean;
     addingTimeStamp: boolean;
+    filterSpecialChars: boolean;
     timeStampDurationNs: number;
     openMdAsNotebook: boolean;
 }
@@ -49,6 +51,7 @@ class Setting implements ISetting {
 
     autoSaveLog: boolean = false;
     addingTimeStamp: boolean = false;
+    filterSpecialChars: boolean = true;
     timeStampDurationNs: number = 20_000_000; // 20ms
     openMdAsNotebook: boolean = true;
 
@@ -60,6 +63,7 @@ class Setting implements ISetting {
         noteBookFolder: this.noteBookFolder,
         autoSaveLog: this.autoSaveLog,
         addingTimeStamp: this.addingTimeStamp,
+        filterSpecialChars: this.filterSpecialChars,
         timeStampDurationNs: this.timeStampDurationNs,
         openMdAsNotebook: this.openMdAsNotebook,
     };
@@ -77,6 +81,7 @@ class Setting implements ISetting {
         );
         this.autoSaveLog = this.getConfigOrDefault(autoSaveLogKey, this.default.autoSaveLog);
         this.addingTimeStamp = this.getConfigOrDefault(addingTimeStampKey, this.default.addingTimeStamp);
+        this.filterSpecialChars = this.getConfigOrDefault(filterSpecialCharsKey, this.default.filterSpecialChars);
         this.openMdAsNotebook = this.getConfigOrDefault(openMdAsNotebookKey, this.default.openMdAsNotebook);
 
         log.info("Settings updated: ", this.fmt());
@@ -118,6 +123,7 @@ class Setting implements ISetting {
         noteBookFolder: ${this.noteBookFolder.fsPath},
         autoSaveLog: ${this.autoSaveLog},
         addingTimeStamp: ${this.addingTimeStamp},
+        filterSpecialChars: ${this.filterSpecialChars},
         timeStampDurationNs: ${this.timeStampDurationNs},
         openMdAsNotebook: ${this.openMdAsNotebook}`;
     }
@@ -151,6 +157,7 @@ export {
     noteBookFolderKey,
     autoSaveLogKey,
     addingTimeStampKey,
+    filterSpecialCharsKey,
     timeStampDurationKey,
     openMdAsNotebookKey,
     setting,

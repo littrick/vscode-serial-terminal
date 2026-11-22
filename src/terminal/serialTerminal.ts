@@ -109,18 +109,31 @@ class SerialTerminal {
         return text;
     };
 
+    private static sanitizeLogText(text: string): string {
+        return text
+            .replace(/\x1B\][^\x07\x1B]*(?:\x07|\x1B\\)/g, '')   // OSC 序列
+            .replace(/\x1B\[[0-9;?]*[ -/]*[@-~]/g, '')            // CSI 序列（颜色等）
+            .replace(/\x1B[@-_]/g, '')                            // 其他 ESC 序列
+            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');    // 控制字符，保留 \t \n \r
+    }
+
+    private logText(data: Buffer): string {
+        const text = data.toString();
+        return setting.filterSpecialChars ? SerialTerminal.sanitizeLogText(text) : text;
+    }
+
     private buildCallback(logFile: Uri) {
         fs.writeFileSync(logFile.fsPath, '');
 
         if (!this.recording) { return; }
         if (this.recording.timestamp()) {
             this.logCallback = (data: Buffer) => {
-                const text = this.timeStampHandle(data.toString());
+                const text = this.timeStampHandle(this.logText(data));
                 fs.appendFileSync(logFile.fsPath, text);
             };
         } else {
             this.logCallback = (data: Buffer) => {
-                fs.appendFileSync(logFile.fsPath, data.toString());
+                fs.appendFileSync(logFile.fsPath, this.logText(data));
             };
         }
     }

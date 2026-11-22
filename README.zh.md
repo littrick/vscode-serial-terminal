@@ -62,6 +62,7 @@
 | `SerialTerminal.log.autoSave` | `false` | 打开串口时自动弹出日志文件名 |
 | `SerialTerminal.log.timestamp.enable` | `false` | 在日志行前添加时间戳 |
 | `SerialTerminal.log.timestamp.duration` | `20000000` | 时间戳间隔（纳秒，默认 20ms） |
+| `SerialTerminal.log.filterSpecialChars` | `true` | 移除日志中的 ANSI 转义序列和控制字符 |
 | `SerialTerminal.notebook.savePath` | `$HOME/serialTerminal/notebook` | Notebook 保存目录，修改后需重载窗口 |
 | `SerialTerminal.notebook.openMdAsNotebook` | `true` | 从脚本视图打开 `.md` 时使用 Notebook 编辑器 |
 

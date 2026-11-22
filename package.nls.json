@@ -37,6 +37,8 @@
     "setting.log.autoSave.description": "Whether to automatically save logs",
     "setting.log.timestamp.enable.title": "Auto Add Timestamp",
     "setting.log.timestamp.enable.description": "Whether to automatically add timestamps",
+    "setting.log.filterSpecialChars.title": "Filter Special Characters in Logs",
+    "setting.log.filterSpecialChars.description": "Remove ANSI color/escape sequences and control characters (such as NUL) from log files. Tabs and line breaks are kept.",
     "setting.log.timestamp.duration.title": "Timestamp Interval",
     "setting.log.timestamp.duration.description": "The minimum interval between timestamps when automatically adding timestamps, in nanoseconds. Default is 20ms or 20000000ns.",
     "setting.notebook.savePath.title": "Notebook Save Path",
