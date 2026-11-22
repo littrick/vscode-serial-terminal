@@ -22,5 +22,6 @@
   "Adding a new serial port configuration": "添加新的串口配置",
   "Configuration for {0} is not set. Using default value: {1}": "{0} 未设置，使用默认值: {1}",
   "Failed to create folder at {0}": "创建目录失败: {0}",
-  "View": "查看"
+  "View": "查看",
+  "Failed to move {0}: {1}": "移动 {0} 失败: {1}"
 }

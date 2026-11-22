@@ -33,6 +33,10 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     onDidChangeTreeData?: vscode.Event<void | vscode.TreeItem | vscode.TreeItem[] | null | undefined> | undefined
         = this.updateEmitter.event;
 
+    refresh() {
+        this.updateEmitter.fire();
+    }
+
     getTreeItem(element: vscode.TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
