@@ -312,6 +312,19 @@
           },
           "markdownDescription": "%setting.serialPort.configurations.description%"
         },
+        "SerialTerminal.serialPort.autoRefresh": {
+          "title": "%setting.serialPort.autoRefresh.title%",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%setting.serialPort.autoRefresh.description%"
+        },
+        "SerialTerminal.serialPort.autoRefreshInterval": {
+          "title": "%setting.serialPort.autoRefreshInterval.title%",
+          "type": "number",
+          "default": 2000,
+          "minimum": 500,
+          "markdownDescription": "%setting.serialPort.autoRefreshInterval.description%"
+        },
         "SerialTerminal.log.savePath": {
           "title": "%setting.log.savePath.title%",
           "type": "string",
