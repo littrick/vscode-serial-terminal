@@ -24,7 +24,7 @@ function registerLogView(context: vscode.ExtensionContext) {
             () => provider.refresh()
         ),
     });
-    context.subscriptions.push(view);
+    context.subscriptions.push(view, provider);
 }
 
 export { registerLogView };

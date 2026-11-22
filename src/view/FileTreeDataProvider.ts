@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { l10n, ThemeIcon, Uri } from 'vscode';
 
-class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>, vscode.Disposable {
     private filePatton: string;
     private uriGetter: (() => vscode.Uri);
     private options?: {
@@ -11,7 +11,7 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         icon?: string | Uri | { light: string | Uri; dark: string | Uri; } | ThemeIcon,
     };
     private updateEmitter = new vscode.EventEmitter<void>();
-    private _watcher;
+    private watcher: vscode.FileSystemWatcher;
 
     constructor(
         filePattons: string[],
@@ -25,9 +25,17 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
         this.uriGetter = uriGetter;
         this.options = options;
-        this._watcher = fs.watch(this.uriGetter().fsPath, () => {
-            this.updateEmitter.fire();
-        });
+        this.watcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(this.uriGetter(), '**/*')
+        );
+        this.watcher.onDidCreate(() => this.updateEmitter.fire());
+        this.watcher.onDidChange(() => this.updateEmitter.fire());
+        this.watcher.onDidDelete(() => this.updateEmitter.fire());
+    }
+
+    dispose() {
+        this.watcher.dispose();
+        this.updateEmitter.dispose();
     }
 
     onDidChangeTreeData?: vscode.Event<void | vscode.TreeItem | vscode.TreeItem[] | null | undefined> | undefined
