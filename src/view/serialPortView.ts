@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { Event, ProviderResult, ThemeIcon, TreeDataProvider, TreeItem, l10n } from "vscode";
 import { listSerialPort, serialInfoToString } from "../serial/serialInfo";
+import { compareNames } from "../utils";
 
 
 function registerSerialPortView(context: vscode.ExtensionContext) {
@@ -26,7 +27,9 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
             // 使用 serialport 模块获取可用的串口设备
             listSerialPort()
                 .then((ports) => {
-                    const treeItem = ports.map((port) => {
+                    const treeItem = [...ports]
+                        .sort((a, b) => compareNames(a.path, b.path))
+                        .map((port) => {
                         return {
                             id: port.path,
                             label: port.path,

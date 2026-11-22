@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { l10n, ThemeIcon, Uri } from 'vscode';
+import { compareNames } from '../utils';
 
 function formatSize(bytes: number): string {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -91,12 +92,25 @@ class FileTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem>, 
             }
 
             if (files) {
-                const treeItem = files.filter((file) => {
-                    let stats = fs.statSync(vscode.Uri.joinPath(dirUri, file).fsPath);
-                    return stats.isDirectory() || stats.isFile() && file.match(this.filePatton);
-                }).map((file) => {
-                    const uri = vscode.Uri.joinPath(dirUri, file);
-                    const stats = fs.statSync(uri.fsPath);
+                const entries = files
+                    .map((file) => {
+                        const uri = vscode.Uri.joinPath(dirUri, file);
+                        return { file, uri, stats: fs.statSync(uri.fsPath) };
+                    })
+                    .filter(({ file, stats }) =>
+                        stats.isDirectory() || (stats.isFile() && file.match(this.filePatton))
+                    )
+                    .sort((a, b) => {
+                        // 目录在前，文件在后；同类按名称自然排序
+                        const aIsDirectory = a.stats.isDirectory();
+                        const bIsDirectory = b.stats.isDirectory();
+                        if (aIsDirectory !== bIsDirectory) {
+                            return aIsDirectory ? -1 : 1;
+                        }
+                        return compareNames(a.file, b.file);
+                    });
+
+                const treeItem = entries.map(({ uri, stats }) => {
                     const isDirectory = stats.isDirectory();
                     const item = new vscode.TreeItem(uri);
                     item.id = uri.toString();
