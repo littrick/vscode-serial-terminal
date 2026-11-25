@@ -7,6 +7,7 @@ import { logSettingId, scriptSettingId, serialPortSettingId, setting } from './c
 import { SerialTerminal, serialTerminalManager } from './terminal/serialTerminal';
 import * as picker from './view/picker';
 import { validateFileName } from './view/fileNameValidation';
+import { getSelectedScriptFolder } from './view/scriptView';
 
 function registerCommands(context: vscode.ExtensionContext) {
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -35,7 +36,10 @@ function registerCommands(context: vscode.ExtensionContext) {
 
         "serialTerminal.scriptView.newNotebook": createScriptNotebook,
         "serialTerminal.scriptView.revealNotebooks": async () => await revealOrOpenInOS(setting.noteBookFolder),
-        "serialTerminal.scriptView.newFolder": () => createFolder(setting.noteBookFolder, "serialTerminal.scriptView.refresh"),
+        "serialTerminal.scriptView.newFolder": () => createFolder(
+            getSelectedScriptFolder() ?? setting.noteBookFolder,
+            "serialTerminal.scriptView.refresh"
+        ),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -207,16 +211,33 @@ async function createFolder(root: vscode.Uri, refreshCommand: string) {
 }
 
 async function createScriptNotebook() {
+    // 在脚本视图中选中目录时，新脚本创建到该目录下；否则创建到根目录
+    const targetFolder = getSelectedScriptFolder() ?? setting.noteBookFolder;
     const fileName = (await vscode.window.showInputBox({
         title: l10n.t("Please enter the script notebook file name"),
-        validateInput: validateFileName,
+        prompt: targetFolder.fsPath,
+        validateInput: (value) => {
+            const nameError = validateFileName(value);
+            if (nameError) {
+                return nameError;
+            }
+            const fileName = value.trim() + ".mdnb";
+            return fs.existsSync(vscode.Uri.joinPath(targetFolder, fileName).fsPath)
+                ? l10n.t("File already exists: {0}", fileName)
+                : undefined;
+        },
     }))?.trim();
     if (!fileName) {
         log.info("Script notebook creation cancelled: No file name provided");
         return false;
     }
 
-    const scriptNotebookFile = vscode.Uri.joinPath(setting.noteBookFolder, fileName + ".mdnb");
+    const scriptNotebookFile = vscode.Uri.joinPath(targetFolder, fileName + ".mdnb");
+    if (fs.existsSync(scriptNotebookFile.fsPath)) {
+        vscode.window.showErrorMessage(l10n.t("File already exists: {0}", fileName + ".mdnb"));
+        return false;
+    }
+
     fs.writeFileSync(scriptNotebookFile.fsPath, "");
     vscode.commands.executeCommand("vscode.open", scriptNotebookFile);
 }

@@ -3,6 +3,19 @@ import { FileTreeDataProvider } from './FileTreeDataProvider';
 import { FileDragAndDropController } from './fileDragAndDrop';
 import { setting } from '../context/setting';
 
+let scriptTreeView: vscode.TreeView<vscode.TreeItem> | undefined;
+
+/**
+ * 返回脚本视图中当前选中的目录。
+ * 未选中目录（或选中的是文件）时返回 undefined，由调用方回退到根目录。
+ */
+function getSelectedScriptFolder(): vscode.Uri | undefined {
+    const folder = scriptTreeView?.selection.find(
+        (item) => item.contextValue === 'scriptFolder' && item.resourceUri
+    );
+    return folder?.resourceUri;
+}
+
 function registerScriptView(context: vscode.ExtensionContext) {
     const provider = new FileTreeDataProvider(
         ['.scrnb', '.mdnb', '.md'],
@@ -24,6 +37,7 @@ function registerScriptView(context: vscode.ExtensionContext) {
             () => provider.refresh()
         ),
     });
+    scriptTreeView = view;
     context.subscriptions.push(
         view,
         provider,
@@ -31,4 +45,4 @@ function registerScriptView(context: vscode.ExtensionContext) {
     );
 }
 
-export { registerScriptView };
+export { registerScriptView, getSelectedScriptFolder };
