@@ -414,7 +414,6 @@
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/l10n-dev": "^0.0.26",
     "@vscode/test-electron": "^2.5.2",
-    "electron": "^25.9.8",
     "eslint": "^8.57.1",
     "glob": "^8.1.0",
     "mocha": "^10.8.2",
