@@ -9,6 +9,13 @@ import * as utils from "../utils";
 import * as context from "../context/context";
 import { setLogRecording } from "../view/logDecoration";
 
+// 终端消息写入的是 VS Code 伪终端（Pseudoterminal），颜色由终端解析 ANSI 转义序列渲染，
+// 与扩展宿主进程的 stdout 是否为 TTY 无关。
+// colors 库默认根据 TERM/COLORTERM/CI 等环境变量自动判断是否启用颜色：
+// Windows 下会无条件启用，而 Linux 下从图形界面启动 VS Code 时这些变量可能缺失或为 dumb，
+// 从而导致 colors.enabled 为 false、所有颜色都被吞掉。这里显式启用，保证提示消息正常着色。
+colors.enable();
+
 class SerialTerminal {
     private serialport: SerialPort;
     private terminal: Terminal;
