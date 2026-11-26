@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 import { updateSerialPortProvider } from './view/serialPortView';
 import { l10n } from 'vscode';
 import { log } from './logger';
@@ -33,9 +34,17 @@ function registerCommands(context: vscode.ExtensionContext) {
         "serialTerminal.logView.openOnEditor": openLogOnEditor,
         "serialTerminal.logView.revealLogs": async () => await revealOrOpenInOS(setting.logSaveFolder),
         "serialTerminal.logView.newFolder": () => createFolder(setting.logSaveFolder, "serialTerminal.logView.refresh"),
+        "serialTerminal.logView.renameResource": (context?: vscode.TreeItem) =>
+            renameResource(context, "serialTerminal.logView.refresh", {
+                hideExtension: true,
+            }),
 
         "serialTerminal.scriptView.newNotebook": createScriptNotebook,
         "serialTerminal.scriptView.revealNotebooks": async () => await revealOrOpenInOS(setting.noteBookFolder),
+        "serialTerminal.scriptView.renameResource": (context?: vscode.TreeItem) =>
+            renameResource(context, "serialTerminal.scriptView.refresh", {
+                allowedExtensions: [".md", ".mdnb"],
+            }),
         "serialTerminal.scriptView.newFolder": () => createFolder(
             getSelectedScriptFolder() ?? setting.noteBookFolder,
             "serialTerminal.scriptView.refresh"
@@ -207,6 +216,97 @@ async function createFolder(root: vscode.Uri, refreshCommand: string) {
         await vscode.commands.executeCommand(refreshCommand);
     } catch (err) {
         vscode.window.showErrorMessage(l10n.t("Failed to create folder {0}: {1}", name, (err as Error).message));
+    }
+}
+
+// Windows / macOS 默认大小写不敏感：仅大小写不同的改名需要走原生 rename。
+const caseInsensitiveFileSystem = process.platform === 'win32' || process.platform === 'darwin';
+
+interface RenameOptions {
+    /** 输入框只显示主文件名，提交后自动补回原扩展名（日志视图） */
+    hideExtension?: boolean;
+    /** 文件只能使用的扩展名，输入框显示完整文件名（脚本视图） */
+    allowedExtensions?: string[];
+}
+
+async function renameResource(
+    context: vscode.TreeItem | undefined,
+    refreshCommand: string,
+    options: RenameOptions = {}
+) {
+    const source = context?.resourceUri;
+    if (!source) {
+        return;
+    }
+
+    const isDirectory = context.contextValue?.endsWith("Folder") ?? false;
+    const oldName = path.basename(source.fsPath);
+    const extension = isDirectory ? "" : path.extname(oldName);
+    const baseName = path.basename(oldName, extension);
+    const parent = vscode.Uri.file(path.dirname(source.fsPath));
+    // 日志视图的输入框不显示后缀，提交时再补回原后缀
+    const hideExtension = !isDirectory && options.hideExtension === true;
+
+    // 仅大小写不同时，大小写不敏感的文件系统会把目标当成已存在的同一个文件
+    const isCaseOnlyRename = (target: vscode.Uri) =>
+        caseInsensitiveFileSystem && target.fsPath.toLowerCase() === source.fsPath.toLowerCase();
+
+    // 把输入框中的名称转换为最终文件名（隐藏后缀时补回原后缀）
+    const toFileName = (value: string) => {
+        if (hideExtension && !value.toLowerCase().endsWith(extension.toLowerCase())) {
+            return value + extension;
+        }
+        return value;
+    };
+
+    // 日志隐藏后缀、默认选中主文件名；Notebook 显示完整文件名并选中主文件名
+    const newName = (await vscode.window.showInputBox({
+        title: l10n.t("Please enter the new name"),
+        prompt: source.fsPath,
+        value: hideExtension ? baseName : oldName,
+        valueSelection: [0, baseName.length],
+        validateInput: (value) => {
+            const nameError = validateFileName(value);
+            if (nameError) {
+                return nameError;
+            }
+            const fileName = toFileName(value.trim());
+
+            // Notebook 只允许 md / mdnb 两种后缀
+            if (!isDirectory && options.allowedExtensions
+                && !options.allowedExtensions.includes(path.extname(fileName))) {
+                return l10n.t("File extension must be one of: {0}", options.allowedExtensions.join(", "));
+            }
+
+            if (fileName === oldName) {
+                return undefined;
+            }
+            const target = vscode.Uri.joinPath(parent, fileName);
+            return !isCaseOnlyRename(target) && fs.existsSync(target.fsPath)
+                ? l10n.t("File already exists: {0}", fileName)
+                : undefined;
+        },
+    }))?.trim();
+
+    if (!newName) {
+        return;
+    }
+
+    const fileName = toFileName(newName);
+    if (fileName === oldName) {
+        return;
+    }
+
+    const target = vscode.Uri.joinPath(parent, fileName);
+    try {
+        if (isCaseOnlyRename(target)) {
+            await fs.promises.rename(source.fsPath, target.fsPath);
+        } else {
+            await vscode.workspace.fs.rename(source, target, { overwrite: false });
+        }
+        await vscode.commands.executeCommand(refreshCommand);
+    } catch (err) {
+        vscode.window.showErrorMessage(l10n.t("Failed to rename {0}: {1}", oldName, (err as Error).message));
     }
 }
 

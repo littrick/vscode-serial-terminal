@@ -181,14 +181,19 @@
           "group": "navigation@1"
         },
         {
-          "command": "serialTerminal.treeItem.revealInExplorer",
+          "command": "serialTerminal.logView.renameResource",
           "when": "view == serialport.logs && viewItem =~ /^log(File|Folder)$/",
           "group": "navigation@2"
         },
         {
-          "command": "serialTerminal.treeItem.deleteResource",
+          "command": "serialTerminal.treeItem.revealInExplorer",
           "when": "view == serialport.logs && viewItem =~ /^log(File|Folder)$/",
           "group": "navigation@3"
+        },
+        {
+          "command": "serialTerminal.treeItem.deleteResource",
+          "when": "view == serialport.logs && viewItem =~ /^log(File|Folder)$/",
+          "group": "z_delete"
         },
         {
           "command": "serialTerminal.treeItem.openOnEditor",
@@ -206,14 +211,19 @@
           "group": "navigation@1"
         },
         {
-          "command": "serialTerminal.treeItem.revealInExplorer",
+          "command": "serialTerminal.scriptView.renameResource",
           "when": "view == serialport.scriptsNotebooks && viewItem =~ /^script(File|Folder)$/",
           "group": "navigation@2"
         },
         {
-          "command": "serialTerminal.treeItem.deleteResource",
+          "command": "serialTerminal.treeItem.revealInExplorer",
           "when": "view == serialport.scriptsNotebooks && viewItem =~ /^script(File|Folder)$/",
           "group": "navigation@3"
+        },
+        {
+          "command": "serialTerminal.treeItem.deleteResource",
+          "when": "view == serialport.scriptsNotebooks && viewItem =~ /^script(File|Folder)$/",
+          "group": "z_delete"
         }
       ]
     },
@@ -299,6 +309,11 @@
         "title": "%commands.logView.newFolder%"
       },
       {
+        "command": "serialTerminal.logView.renameResource",
+        "icon": "$(edit)",
+        "title": "%commands.logView.renameResource%"
+      },
+      {
         "command": "serialTerminal.scriptView.newNotebook",
         "icon": "$(new-file)",
         "title": "%commands.scriptView.newNotebook%"
@@ -312,6 +327,11 @@
         "command": "serialTerminal.scriptView.revealNotebooks",
         "icon": "$(file-directory)",
         "title": "%commands.scriptView.revealNotebooks%"
+      },
+      {
+        "command": "serialTerminal.scriptView.renameResource",
+        "icon": "$(edit)",
+        "title": "%commands.scriptView.renameResource%"
       },
       {
         "command": "serialTerminal.scriptView.refresh",
