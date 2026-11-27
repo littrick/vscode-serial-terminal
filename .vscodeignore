@@ -8,3 +8,10 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+
+# vsce 默认忽略所有 *.vsix，这里只放行 bundled/ 下的依赖扩展包
+!bundled/**/*.vsix
+
+# 子模块源码不打包
+submodules/**
+.gitmodules

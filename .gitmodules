@@ -1,0 +1,3 @@
+[submodule "submodules/vscode-terminal-notebook"]
+	path = submodules/vscode-terminal-notebook
+	url = https://github.com/littrick/vscode-terminal-notebook.git

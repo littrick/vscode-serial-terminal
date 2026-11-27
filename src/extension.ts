@@ -8,10 +8,12 @@ import { registerScriptView } from './view/scriptView';
 import { registerLogDecoration } from './view/logDecoration';
 import { registerSetting } from './context/setting';
 import { registerSerialPortTerminalProfile } from './terminal/provider';
+import { initializeNotebookSupport } from './notebookSupport';
 
 
 
 export function activate(context: vscode.ExtensionContext) {
+    initializeNotebookSupport(context);
     registerSetting(context);
     registerContextCallback(context);
     registerCommands(context);

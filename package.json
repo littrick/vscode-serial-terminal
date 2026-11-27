@@ -39,9 +39,6 @@
   "extensionPack": [
     "awsxxf.scriptnotebook"
   ],
-  "extensionDependencies": [
-    "awsxxf.scriptnotebook"
-  ],
   "contributes": {
     "viewsContainers": {
       "activitybar": [

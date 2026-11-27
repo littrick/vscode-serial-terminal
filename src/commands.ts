@@ -10,6 +10,7 @@ import * as picker from './view/picker';
 import { validateFileName } from './view/fileNameValidation';
 import { getSelectedScriptFolder, refreshScriptView } from './view/scriptView';
 import { refreshLogView } from './view/logView';
+import { ensureNotebookAvailable, promptInstallNotebookExtension } from './notebookSupport';
 
 function registerCommands(context: vscode.ExtensionContext) {
     // 在扩展内按设置前缀筛选，避免文本搜索误匹配其它扩展的设置
@@ -186,7 +187,22 @@ async function openTreeItemResource(context?: vscode.TreeItem) {
 
 // .md 默认由文本编辑器打开，开启设置后强制用 Script Notebook 的 md notebook 打开
 async function openScriptResource(uri: vscode.Uri) {
-    if (setting.openMdAsNotebook && uri.path.toLowerCase().endsWith('.md')) {
+    const path = uri.path.toLowerCase();
+    const isNotebookFile = path.endsWith('.mdnb') || path.endsWith('.scrnb');
+    const openMdAsNotebook = setting.openMdAsNotebook && path.endsWith('.md');
+
+    if (isNotebookFile || openMdAsNotebook) {
+        // 依赖扩展可能在 VSIX 安装时缺失，按需检测并引导安装
+        if (!(await ensureNotebookAvailable()) && !(await promptInstallNotebookExtension())) {
+            // .md 仍可用文本编辑器打开；.mdnb / .scrnb 没有可用编辑器
+            if (!isNotebookFile) {
+                await vscode.commands.executeCommand("vscode.open", uri);
+            }
+            return;
+        }
+    }
+
+    if (openMdAsNotebook) {
         await vscode.commands.executeCommand("vscode.openWith", uri, "mdnb");
     } else {
         await vscode.commands.executeCommand("vscode.open", uri);
@@ -359,6 +375,12 @@ async function renameResource(
 }
 
 async function createScriptNotebook() {
+    // 新建 Notebook 依赖 notebook 扩展，缺失时引导安装
+    if (!(await ensureNotebookAvailable()) && !(await promptInstallNotebookExtension())) {
+        log.info("Script notebook extension is not available");
+        return false;
+    }
+
     // 在脚本视图中选中目录时，新脚本创建到该目录下；否则创建到根目录
     const targetFolder = getSelectedScriptFolder() ?? setting.noteBookFolder;
     const extension = `.${setting.newNotebookFormat}`;
