@@ -410,6 +410,20 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "%setting.notebook.openMdAsNotebook.description%"
+        },
+        "SerialTerminal.notebook.newNotebookFormat": {
+          "title": "%setting.notebook.newNotebookFormat.title%",
+          "type": "string",
+          "enum": [
+            "mdnb",
+            "md"
+          ],
+          "enumDescriptions": [
+            "%setting.notebook.newNotebookFormat.mdnb%",
+            "%setting.notebook.newNotebookFormat.md%"
+          ],
+          "default": "mdnb",
+          "markdownDescription": "%setting.notebook.newNotebookFormat.description%"
         }
       }
     }

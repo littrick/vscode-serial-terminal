@@ -18,6 +18,7 @@ const filterSpecialCharsKey = `${logSettingId}.filterSpecialChars`;
 const timeStampDurationKey = `${logSettingId}.timestamp.duration`;
 const noteBookFolderKey = `${scriptSettingId}.savePath`;
 const openMdAsNotebookKey = `${scriptSettingId}.openMdAsNotebook`;
+const newNotebookFormatKey = `${scriptSettingId}.newNotebookFormat`;
 
 interface ISetting {
     portConfigurations: Array<string>;
@@ -31,6 +32,7 @@ interface ISetting {
     filterSpecialChars: boolean;
     timeStampDurationNs: number;
     openMdAsNotebook: boolean;
+    newNotebookFormat: 'mdnb' | 'md';
 }
 
 class Setting implements ISetting {
@@ -57,6 +59,7 @@ class Setting implements ISetting {
     filterSpecialChars: boolean = true;
     timeStampDurationNs: number = 20_000_000; // 20ms
     openMdAsNotebook: boolean = true;
+    newNotebookFormat: 'mdnb' | 'md' = 'mdnb';
 
     readonly default: ISetting = {
         portConfigurations: this.portConfigurations,
@@ -70,6 +73,7 @@ class Setting implements ISetting {
         filterSpecialChars: this.filterSpecialChars,
         timeStampDurationNs: this.timeStampDurationNs,
         openMdAsNotebook: this.openMdAsNotebook,
+        newNotebookFormat: this.newNotebookFormat,
     };
 
     update() {
@@ -91,6 +95,7 @@ class Setting implements ISetting {
         this.addingTimeStamp = this.getConfigOrDefault(addingTimeStampKey, this.default.addingTimeStamp);
         this.filterSpecialChars = this.getConfigOrDefault(filterSpecialCharsKey, this.default.filterSpecialChars);
         this.openMdAsNotebook = this.getConfigOrDefault(openMdAsNotebookKey, this.default.openMdAsNotebook);
+        this.newNotebookFormat = this.getConfigOrDefault(newNotebookFormatKey, this.default.newNotebookFormat);
 
         log.info("Settings updated: ", this.fmt());
     }
@@ -134,7 +139,8 @@ class Setting implements ISetting {
         addingTimeStamp: ${this.addingTimeStamp},
         filterSpecialChars: ${this.filterSpecialChars},
         timeStampDurationNs: ${this.timeStampDurationNs},
-        openMdAsNotebook: ${this.openMdAsNotebook}`;
+        openMdAsNotebook: ${this.openMdAsNotebook},
+        newNotebookFormat: ${this.newNotebookFormat}`;
     }
 }
 

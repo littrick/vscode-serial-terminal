@@ -181,7 +181,11 @@ async function openTreeItemResource(context?: vscode.TreeItem) {
         return;
     }
 
-    // .md 默认由文本编辑器打开，开启设置后强制用 Script Notebook 的 md notebook 打开
+    await openScriptResource(uri);
+}
+
+// .md 默认由文本编辑器打开，开启设置后强制用 Script Notebook 的 md notebook 打开
+async function openScriptResource(uri: vscode.Uri) {
     if (setting.openMdAsNotebook && uri.path.toLowerCase().endsWith('.md')) {
         await vscode.commands.executeCommand("vscode.openWith", uri, "mdnb");
     } else {
@@ -357,6 +361,7 @@ async function renameResource(
 async function createScriptNotebook() {
     // 在脚本视图中选中目录时，新脚本创建到该目录下；否则创建到根目录
     const targetFolder = getSelectedScriptFolder() ?? setting.noteBookFolder;
+    const extension = `.${setting.newNotebookFormat}`;
     const fileName = (await vscode.window.showInputBox({
         title: l10n.t("Please enter the script notebook file name"),
         prompt: targetFolder.fsPath,
@@ -365,7 +370,7 @@ async function createScriptNotebook() {
             if (nameError) {
                 return nameError;
             }
-            const fileName = value.trim() + ".mdnb";
+            const fileName = value.trim() + extension;
             return fs.existsSync(vscode.Uri.joinPath(targetFolder, fileName).fsPath)
                 ? l10n.t("File already exists: {0}", fileName)
                 : undefined;
@@ -376,14 +381,14 @@ async function createScriptNotebook() {
         return false;
     }
 
-    const scriptNotebookFile = vscode.Uri.joinPath(targetFolder, fileName + ".mdnb");
+    const scriptNotebookFile = vscode.Uri.joinPath(targetFolder, fileName + extension);
     if (fs.existsSync(scriptNotebookFile.fsPath)) {
-        vscode.window.showErrorMessage(l10n.t("File already exists: {0}", fileName + ".mdnb"));
+        vscode.window.showErrorMessage(l10n.t("File already exists: {0}", fileName + extension));
         return false;
     }
 
     fs.writeFileSync(scriptNotebookFile.fsPath, "");
-    vscode.commands.executeCommand("vscode.open", scriptNotebookFile);
+    await openScriptResource(scriptNotebookFile);
 }
 async function deleteResource(context: vscode.TreeItem) {
     if (!context.resourceUri) {
