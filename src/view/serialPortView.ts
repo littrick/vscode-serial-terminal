@@ -31,13 +31,18 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
                     const treeItem = sortSerialPorts(ports)
                         .map((port) => {
                             const info = (port as any).friendlyName || port.manufacturer;
-                            const isOpen = serialTerminalManager.getSerialPortTerminal(port.path)?.isOpen() ?? false;
+                            const terminal = serialTerminalManager.getSerialPortTerminal(port.path);
+                            const isOpen = terminal?.isOpen() ?? false;
+                            // 有终端但未连接（打开失败或已断开）显示红色；没有终端保持默认色
+                            const iconColor = terminal
+                                ? new ThemeColor(isOpen ? "charts.green" : "charts.red")
+                                : undefined;
                             return {
                                 id: port.path,
                                 label: port.path,
                                 description: info,
                                 tooltip: serialInfoToString(port),
-                                iconPath: new ThemeIcon("plug", isOpen ? new ThemeColor("charts.green") : undefined),
+                                iconPath: new ThemeIcon("plug", iconColor),
                                 contextValue: isOpen ? "serialPortOpened" : "serialPort",
                             };
                         });
