@@ -7,7 +7,6 @@ const NOTEBOOK_EXTENSION_ID = 'awsxxf.scriptnotebook';
 const BUNDLED_VSIX_PATH = 'bundled/awsxxf.scriptnotebook.vsix';
 
 let extensionContext: vscode.ExtensionContext | undefined;
-let promptedThisSession = false;
 
 function initializeNotebookSupport(context: vscode.ExtensionContext) {
     extensionContext = context;
@@ -39,20 +38,12 @@ async function ensureNotebookAvailable(): Promise<boolean> {
 /**
  * 提示安装 notebook 扩展：优先安装扩展内自带的 VSIX（离线可用），
  * 没有内置 VSIX 时按扩展 ID 从扩展市场安装。
- * 同一会话内用户选择「稍后」后不再重复提示。
+ * 每次需要该扩展时都弹出 warning 提示，不会因用户选择「稍后」而静默。
  */
 async function promptInstallNotebookExtension(): Promise<boolean> {
     if (await ensureNotebookAvailable()) {
         return true;
     }
-    if (promptedThisSession) {
-        // 已提示过但用户未安装，再次使用相关功能时给出非模态提示
-        vscode.window.showInformationMessage(
-            l10n.t("The {0} extension is required for notebook features.", NOTEBOOK_EXTENSION_ID)
-        );
-        return false;
-    }
-    promptedThisSession = true;
 
     const installLabel = l10n.t("Install");
     const choice = await vscode.window.showWarningMessage(
@@ -84,7 +75,6 @@ async function installNotebookExtension(): Promise<boolean> {
         log.info(`Installing notebook extension: ${typeof target === 'string' ? target : target.fsPath}`);
         await vscode.commands.executeCommand("workbench.extensions.installExtension", target);
     } catch (err) {
-        promptedThisSession = false;
         log.error(`Failed to install ${NOTEBOOK_EXTENSION_ID}: ${(err as Error).message}`);
         vscode.window.showErrorMessage(
             l10n.t("Failed to install {0}: {1}", NOTEBOOK_EXTENSION_ID, (err as Error).message)
