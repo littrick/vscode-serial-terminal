@@ -1,8 +1,7 @@
 import * as vscode from "vscode";
-import { Event, ProviderResult, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem, l10n } from "vscode";
-import { listSerialPort, serialInfoToString, serialPortPriority } from "../serial/serialInfo";
+import { Event, ProviderResult, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem } from "vscode";
+import { listSerialPort, serialInfoToString, sortSerialPorts } from "../serial/serialInfo";
 import { serialTerminalManager } from "../terminal/serialTerminal";
-import { compareNames } from "../utils";
 
 
 function registerSerialPortView(context: vscode.ExtensionContext) {
@@ -24,26 +23,26 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
     getTreeItem(element: TreeItem): TreeItem | Thenable<TreeItem> {
         return element;
     }
-    getChildren(element?: TreeItem | undefined): ProviderResult<TreeItem[]> {
+    getChildren(): ProviderResult<TreeItem[]> {
         return new Promise((resolve, reject) => {
             // 使用 serialport 模块获取可用的串口设备
             listSerialPort()
                 .then((ports) => {
-                    const treeItem = [...ports]
-                        .sort((a, b) => {
-                            // 可用性优先（USB 串口在前、蓝牙串口在后），同优先级按名称排序
-                            const priorityDiff = serialPortPriority(a) - serialPortPriority(b);
-                            return priorityDiff !== 0 ? priorityDiff : compareNames(a.path, b.path);
-                        })
+                    const treeItem = sortSerialPorts(ports)
                         .map((port) => {
                             const info = (port as any).friendlyName || port.manufacturer;
-                            const isOpen = serialTerminalManager.getSerialPortTerminal(port.path)?.isOpen() ?? false;
+                            const terminal = serialTerminalManager.getSerialPortTerminal(port.path);
+                            const isOpen = terminal?.isOpen() ?? false;
+                            // 有终端但未连接（打开失败或已断开）显示红色；没有终端保持默认色
+                            const iconColor = terminal
+                                ? new ThemeColor(isOpen ? "charts.green" : "charts.red")
+                                : undefined;
                             return {
                                 id: port.path,
                                 label: port.path,
                                 description: info,
                                 tooltip: serialInfoToString(port),
-                                iconPath: new ThemeIcon("plug", isOpen ? new ThemeColor("charts.green") : undefined),
+                                iconPath: new ThemeIcon("plug", iconColor),
                                 contextValue: isOpen ? "serialPortOpened" : "serialPort",
                             };
                         });
@@ -57,47 +56,11 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
 })();
 
 
-interface CommandQuickPickItem extends vscode.QuickPickItem {
-    label: string;
-    kind?: vscode.QuickPickItemKind | undefined;
-    description?: string | undefined;
-    detail?: string | undefined;
-    picked?: boolean | undefined;
-    alwaysShow?: boolean | undefined;
-    buttons?: readonly vscode.QuickInputButton[] | undefined;
-    command?: vscode.Command;
-}
-
 function updateSerialPortProvider() {
     serialPortProvider.update();
 }
 
-async function pickSerialPort(): Promise<string | undefined> {
-    const serialPortItems: Thenable<vscode.QuickPickItem[]> = new Promise((resolve, reject) => {
-        listSerialPort().then((ports) => {
-            const portItems: vscode.QuickPickItem[] = ports.map((port) => {
-                return { label: port.path, description: port.manufacturer };
-            });
-            resolve(portItems);
-        }).catch((error) => {
-            reject(error);
-        });
-    });
-
-    let port = await vscode.window.showQuickPick(serialPortItems, { placeHolder: l10n.t("please select a serial port") });
-    return port ? port.label : undefined;
-}
-
-interface SerialPortConfiguration {
-    baudrate: number,
-    parity: 'none' | 'even' | 'odd' | undefined,
-    dataBits: 5 | 6 | 7 | 8 | undefined,
-    stopBits: 1 | 1.5 | 2 | undefined,
-}
-
 export {
-    SerialPortConfiguration,
-    pickSerialPort,
     registerSerialPortView,
     updateSerialPortProvider,
 };

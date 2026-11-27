@@ -3,13 +3,18 @@ import { FileTreeDataProvider } from './FileTreeDataProvider';
 import { FileDragAndDropController } from './fileDragAndDrop';
 import { setting } from '../context/setting';
 
+let logProvider: FileTreeDataProvider | undefined;
+
+function refreshLogView() {
+    logProvider?.refresh();
+}
 
 function registerLogView(context: vscode.ExtensionContext) {
     const provider = new FileTreeDataProvider(
         ['.txt', '.log'],
         () => setting.logSaveFolder,
         {
-            command: "serialTerminal.logView.openOnEditor",
+            command: "serialTerminal.treeItem.openOnEditor",
             readdirErrorMessagePrefix: vscode.l10n.t("Log path error: "),
             icon: new vscode.ThemeIcon("output"),
             contextValuePrefix: "log",
@@ -25,11 +30,8 @@ function registerLogView(context: vscode.ExtensionContext) {
             () => provider.refresh()
         ),
     });
-    context.subscriptions.push(
-        view,
-        provider,
-        vscode.commands.registerCommand("serialTerminal.logView.refresh", () => provider.refresh())
-    );
+    logProvider = provider;
+    context.subscriptions.push(view, provider);
 }
 
-export { registerLogView };
+export { registerLogView, refreshLogView };

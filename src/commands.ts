@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 import { updateSerialPortProvider } from './view/serialPortView';
 import { l10n } from 'vscode';
 import { log } from './logger';
@@ -7,9 +8,17 @@ import { logSettingId, scriptSettingId, serialPortSettingId, setting } from './c
 import { SerialTerminal, serialTerminalManager } from './terminal/serialTerminal';
 import * as picker from './view/picker';
 import { validateFileName } from './view/fileNameValidation';
-import { getSelectedScriptFolder } from './view/scriptView';
+import { getSelectedScriptFolder, refreshScriptView } from './view/scriptView';
+import { refreshLogView } from './view/logView';
 
 function registerCommands(context: vscode.ExtensionContext) {
+    // 在扩展内按设置前缀筛选，避免文本搜索误匹配其它扩展的设置
+    const openSettings = (query: string) =>
+        vscode.commands.executeCommand(
+            "workbench.action.openSettings",
+            `@ext:${context.extension.id} ${query}`
+        );
+
     /* eslint-disable @typescript-eslint/naming-convention */
     const commands: { [key: string]: (...args: any[]) => any; } =
     {
@@ -18,27 +27,28 @@ function registerCommands(context: vscode.ExtensionContext) {
 
         "serialTerminal.terminal.clear": () => vscode.commands.executeCommand("workbench.action.terminal.clear"),
 
-        "serialTerminal.setting.SerialPort": () => vscode.commands.executeCommand("workbench.action.openSettings", serialPortSettingId),
-        "serialTerminal.setting.Log": () => vscode.commands.executeCommand("workbench.action.openSettings", logSettingId),
-        "serialTerminal.setting.Notebook": () => vscode.commands.executeCommand("workbench.action.openSettings", scriptSettingId),
+        "serialTerminal.setting.SerialPort": () => openSettings(serialPortSettingId),
+        "serialTerminal.setting.Log": () => openSettings(logSettingId),
+        "serialTerminal.setting.Notebook": () => openSettings(scriptSettingId),
 
         "serialTerminal.treeItem.openOnEditor": openTreeItemResource,
         "serialTerminal.treeItem.revealInExplorer": revealInExplorer,
+        "serialTerminal.treeItem.copyPath": copyPath,
+        "serialTerminal.treeItem.renameResource": renameTreeItem,
         "serialTerminal.treeItem.deleteResource": deleteResource,
 
         "serialTerminal.serialView.open": openSerialTerminal,
         "serialTerminal.serialView.openCustom": openCustomSerialTerminal,
-        "serialTerminal.serialView.refresh": updateSerialPortProvider,
+        "serialTerminal.refresh": refreshAllViews,
 
-        "serialTerminal.logView.openOnEditor": openLogOnEditor,
         "serialTerminal.logView.revealLogs": async () => await revealOrOpenInOS(setting.logSaveFolder),
-        "serialTerminal.logView.newFolder": () => createFolder(setting.logSaveFolder, "serialTerminal.logView.refresh"),
+        "serialTerminal.logView.newFolder": () => createFolder(setting.logSaveFolder, "serialTerminal.refresh"),
 
         "serialTerminal.scriptView.newNotebook": createScriptNotebook,
         "serialTerminal.scriptView.revealNotebooks": async () => await revealOrOpenInOS(setting.noteBookFolder),
         "serialTerminal.scriptView.newFolder": () => createFolder(
             getSelectedScriptFolder() ?? setting.noteBookFolder,
-            "serialTerminal.scriptView.refresh"
+            "serialTerminal.refresh"
         ),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -114,7 +124,7 @@ async function openSerialTerminalByPath(portName: string) {
     newTerminal.show();
 }
 
-async function startSaveLog(context?: any) {
+async function startSaveLog() {
     const terminal = vscode.window.activeTerminal;
     if (!terminal) {
         log.error("No active terminal");
@@ -136,7 +146,7 @@ async function startSaveLog(context?: any) {
 }
 
 
-async function stopSaveLog(context?: any) {
+async function stopSaveLog() {
     const terminal = vscode.window.activeTerminal;
     if (!terminal) {
         log.error("No active terminal");
@@ -153,18 +163,65 @@ async function stopSaveLog(context?: any) {
 
 }
 
-async function openTreeItemResource(context: vscode.TreeItem) {
-    if (!context.resourceUri) {
+// 日志与脚本视图共用打开命令，按节点的 contextValue 区分所属视图
+async function openTreeItemResource(context?: vscode.TreeItem) {
+    const uri = context?.resourceUri;
+    if (!uri) {
         return;
     }
-    log.info(`Opening resource: ${context.resourceUri.toString()}`);
+    log.info(`Opening resource: ${uri.toString()}`);
 
-    // .md 默认由文本编辑器打开，开启设置后强制用 Script Notebook 的 md notebook 打开
-    if (setting.openMdAsNotebook && context.resourceUri.path.toLowerCase().endsWith('.md')) {
-        await vscode.commands.executeCommand("vscode.openWith", context.resourceUri, "mdnb");
-    } else {
-        await vscode.commands.executeCommand("vscode.open", context.resourceUri);
+    // 日志以只读方式打开，避免误编辑
+    if (context.contextValue?.startsWith("log")) {
+        await vscode.commands.executeCommand("vscode.open", uri);
+        const editor = vscode.window.activeTextEditor;
+        if (editor?.document.uri.toString() === uri.toString()) {
+            vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession");
+        }
+        return;
     }
+
+    await openScriptResource(uri);
+}
+
+// .md 默认由文本编辑器打开，开启设置后强制用 Script Notebook 的 md notebook 打开
+async function openScriptResource(uri: vscode.Uri) {
+    if (setting.openMdAsNotebook && uri.path.toLowerCase().endsWith('.md')) {
+        await vscode.commands.executeCommand("vscode.openWith", uri, "mdnb");
+    } else {
+        await vscode.commands.executeCommand("vscode.open", uri);
+    }
+}
+
+// 日志与脚本视图共用重命名命令，按节点的 contextValue 区分所属视图
+function renameTreeItem(context?: vscode.TreeItem) {
+    if (!context?.resourceUri) {
+        return;
+    }
+    if (context.contextValue?.startsWith("log")) {
+        return renameResource(context, "serialTerminal.refresh", {
+            hideExtension: true,
+        });
+    }
+    return renameResource(context, "serialTerminal.refresh", {
+        allowedExtensions: [".md", ".mdnb"],
+    });
+}
+
+// 三个视图共用刷新命令
+function refreshAllViews() {
+    updateSerialPortProvider();
+    refreshLogView();
+    refreshScriptView();
+}
+
+async function copyPath(context?: vscode.TreeItem) {
+    const uri = context?.resourceUri;
+    if (!uri) {
+        return;
+    }
+    await vscode.env.clipboard.writeText(uri.fsPath);
+    log.info(`Copied path: ${uri.fsPath}`);
 }
 
 async function revealInExplorer(context: vscode.TreeItem) {
@@ -210,9 +267,101 @@ async function createFolder(root: vscode.Uri, refreshCommand: string) {
     }
 }
 
+// Windows / macOS 默认大小写不敏感：仅大小写不同的改名需要走原生 rename。
+const caseInsensitiveFileSystem = process.platform === 'win32' || process.platform === 'darwin';
+
+interface RenameOptions {
+    /** 输入框只显示主文件名，提交后自动补回原扩展名（日志视图） */
+    hideExtension?: boolean;
+    /** 文件只能使用的扩展名，输入框显示完整文件名（脚本视图） */
+    allowedExtensions?: string[];
+}
+
+async function renameResource(
+    context: vscode.TreeItem | undefined,
+    refreshCommand: string,
+    options: RenameOptions = {}
+) {
+    const source = context?.resourceUri;
+    if (!source) {
+        return;
+    }
+
+    const isDirectory = context.contextValue?.endsWith("Folder") ?? false;
+    const oldName = path.basename(source.fsPath);
+    const extension = isDirectory ? "" : path.extname(oldName);
+    const baseName = path.basename(oldName, extension);
+    const parent = vscode.Uri.file(path.dirname(source.fsPath));
+    // 日志视图的输入框不显示后缀，提交时再补回原后缀
+    const hideExtension = !isDirectory && options.hideExtension === true;
+
+    // 仅大小写不同时，大小写不敏感的文件系统会把目标当成已存在的同一个文件
+    const isCaseOnlyRename = (target: vscode.Uri) =>
+        caseInsensitiveFileSystem && target.fsPath.toLowerCase() === source.fsPath.toLowerCase();
+
+    // 把输入框中的名称转换为最终文件名（隐藏后缀时补回原后缀）
+    const toFileName = (value: string) => {
+        if (hideExtension && !value.toLowerCase().endsWith(extension.toLowerCase())) {
+            return value + extension;
+        }
+        return value;
+    };
+
+    // 日志隐藏后缀、默认选中主文件名；Notebook 显示完整文件名并选中主文件名
+    const newName = (await vscode.window.showInputBox({
+        title: l10n.t("Please enter the new name"),
+        prompt: source.fsPath,
+        value: hideExtension ? baseName : oldName,
+        valueSelection: [0, baseName.length],
+        validateInput: (value) => {
+            const nameError = validateFileName(value);
+            if (nameError) {
+                return nameError;
+            }
+            const fileName = toFileName(value.trim());
+
+            // Notebook 只允许 md / mdnb 两种后缀
+            if (!isDirectory && options.allowedExtensions
+                && !options.allowedExtensions.includes(path.extname(fileName))) {
+                return l10n.t("File extension must be one of: {0}", options.allowedExtensions.join(", "));
+            }
+
+            if (fileName === oldName) {
+                return undefined;
+            }
+            const target = vscode.Uri.joinPath(parent, fileName);
+            return !isCaseOnlyRename(target) && fs.existsSync(target.fsPath)
+                ? l10n.t("File already exists: {0}", fileName)
+                : undefined;
+        },
+    }))?.trim();
+
+    if (!newName) {
+        return;
+    }
+
+    const fileName = toFileName(newName);
+    if (fileName === oldName) {
+        return;
+    }
+
+    const target = vscode.Uri.joinPath(parent, fileName);
+    try {
+        if (isCaseOnlyRename(target)) {
+            await fs.promises.rename(source.fsPath, target.fsPath);
+        } else {
+            await vscode.workspace.fs.rename(source, target, { overwrite: false });
+        }
+        await vscode.commands.executeCommand(refreshCommand);
+    } catch (err) {
+        vscode.window.showErrorMessage(l10n.t("Failed to rename {0}: {1}", oldName, (err as Error).message));
+    }
+}
+
 async function createScriptNotebook() {
     // 在脚本视图中选中目录时，新脚本创建到该目录下；否则创建到根目录
     const targetFolder = getSelectedScriptFolder() ?? setting.noteBookFolder;
+    const extension = `.${setting.newNotebookFormat}`;
     const fileName = (await vscode.window.showInputBox({
         title: l10n.t("Please enter the script notebook file name"),
         prompt: targetFolder.fsPath,
@@ -221,7 +370,7 @@ async function createScriptNotebook() {
             if (nameError) {
                 return nameError;
             }
-            const fileName = value.trim() + ".mdnb";
+            const fileName = value.trim() + extension;
             return fs.existsSync(vscode.Uri.joinPath(targetFolder, fileName).fsPath)
                 ? l10n.t("File already exists: {0}", fileName)
                 : undefined;
@@ -232,14 +381,14 @@ async function createScriptNotebook() {
         return false;
     }
 
-    const scriptNotebookFile = vscode.Uri.joinPath(targetFolder, fileName + ".mdnb");
+    const scriptNotebookFile = vscode.Uri.joinPath(targetFolder, fileName + extension);
     if (fs.existsSync(scriptNotebookFile.fsPath)) {
-        vscode.window.showErrorMessage(l10n.t("File already exists: {0}", fileName + ".mdnb"));
+        vscode.window.showErrorMessage(l10n.t("File already exists: {0}", fileName + extension));
         return false;
     }
 
     fs.writeFileSync(scriptNotebookFile.fsPath, "");
-    vscode.commands.executeCommand("vscode.open", scriptNotebookFile);
+    await openScriptResource(scriptNotebookFile);
 }
 async function deleteResource(context: vscode.TreeItem) {
     if (!context.resourceUri) {
@@ -257,14 +406,5 @@ async function deleteResource(context: vscode.TreeItem) {
     }
     await vscode.workspace.fs.delete(context.resourceUri, { recursive: true, useTrash: true });
 }
-
-async function openLogOnEditor(context: vscode.TreeItem) {
-    await vscode.commands.executeCommand("vscode.open", context.resourceUri);
-    let editor = vscode.window.activeTextEditor;
-    if (editor?.document.uri.toString() === context.resourceUri?.toString()) {
-        vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession");
-    }
-}
-
 
 export { registerCommands };

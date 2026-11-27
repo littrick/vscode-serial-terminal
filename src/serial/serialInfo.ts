@@ -1,5 +1,6 @@
 import { SerialPort } from "serialport";
 import { l10n } from "vscode";
+import { compareNames } from "../utils";
 
 
 interface SerialInfo {
@@ -53,6 +54,17 @@ function serialPortPriority(port: SerialInfo): number {
     return 0;
 }
 
+/**
+ * 串口排序：可用性优先（USB 串口在前、蓝牙串口在后），同优先级按名称自然排序。
+ * 串口视图与选择列表共用同一规则。
+ */
+function sortSerialPorts(ports: SerialInfo[]): SerialInfo[] {
+    return [...ports].sort((a, b) => {
+        const priorityDiff = serialPortPriority(a) - serialPortPriority(b);
+        return priorityDiff !== 0 ? priorityDiff : compareNames(a.path, b.path);
+    });
+}
+
 function serialInfoToString(serialInfo: SerialInfo): string {
     /* eslint-disable @typescript-eslint/naming-convention */
     let infoTable: { [key: string]: string | undefined; } = {
@@ -81,4 +93,5 @@ export {
     serialInfoToString,
     listSerialPort,
     serialPortPriority,
+    sortSerialPorts,
 };
