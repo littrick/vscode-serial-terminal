@@ -10,6 +10,7 @@ const scriptSettingId = 'SerialTerminal.notebook';
 const portConfigurationsKey = `${serialPortSettingId}.configurations`;
 const serialPortAutoRefreshKey = `${serialPortSettingId}.autoRefresh`;
 const serialPortAutoRefreshIntervalKey = `${serialPortSettingId}.autoRefreshInterval`;
+const serialPortAutoReconnectKey = `${serialPortSettingId}.autoReconnect`;
 const logSaveFolderKey = `${logSettingId}.savePath`;
 const autoSaveLogKey = `${logSettingId}.autoSave`;
 const addingTimeStampKey = `${logSettingId}.timestamp.enable`;
@@ -22,6 +23,7 @@ interface ISetting {
     portConfigurations: Array<string>;
     serialPortAutoRefresh: boolean;
     serialPortAutoRefreshInterval: number;
+    serialPortAutoReconnect: boolean;
     logSaveFolder: Uri;
     noteBookFolder: Uri;
     autoSaveLog: boolean;
@@ -38,6 +40,7 @@ class Setting implements ISetting {
     ];
     serialPortAutoRefresh: boolean = true;
     serialPortAutoRefreshInterval: number = 2000;
+    serialPortAutoReconnect: boolean = false;
     logSaveFolder: Uri = Uri.joinPath(
         Uri.file(homedir()),
         "serialTerminal",
@@ -59,6 +62,7 @@ class Setting implements ISetting {
         portConfigurations: this.portConfigurations,
         serialPortAutoRefresh: this.serialPortAutoRefresh,
         serialPortAutoRefreshInterval: this.serialPortAutoRefreshInterval,
+        serialPortAutoReconnect: this.serialPortAutoReconnect,
         logSaveFolder: this.logSaveFolder,
         noteBookFolder: this.noteBookFolder,
         autoSaveLog: this.autoSaveLog,
@@ -78,6 +82,10 @@ class Setting implements ISetting {
         this.serialPortAutoRefreshInterval = this.getConfigOrDefault(
             serialPortAutoRefreshIntervalKey,
             this.default.serialPortAutoRefreshInterval
+        );
+        this.serialPortAutoReconnect = this.getConfigOrDefault(
+            serialPortAutoReconnectKey,
+            this.default.serialPortAutoReconnect
         );
         this.autoSaveLog = this.getConfigOrDefault(autoSaveLogKey, this.default.autoSaveLog);
         this.addingTimeStamp = this.getConfigOrDefault(addingTimeStampKey, this.default.addingTimeStamp);
@@ -119,6 +127,7 @@ class Setting implements ISetting {
         portConfigurations: ${JSON.stringify(this.portConfigurations)},
         serialPortAutoRefresh: ${this.serialPortAutoRefresh},
         serialPortAutoRefreshInterval: ${this.serialPortAutoRefreshInterval},
+        serialPortAutoReconnect: ${this.serialPortAutoReconnect},
         logSaveFolder: ${this.logSaveFolder.fsPath},
         noteBookFolder: ${this.noteBookFolder.fsPath},
         autoSaveLog: ${this.autoSaveLog},
@@ -151,6 +160,7 @@ export {
     scriptSettingId,
 
     portConfigurationsKey,
+    serialPortAutoReconnectKey,
     setting,
     registerSetting
 };

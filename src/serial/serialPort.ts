@@ -119,7 +119,8 @@ class SerialPort {
         return new Promise<Error | null>((resolve) => {
             this.serialPortInstance.open((err) => {
                 if (err) {
-                    log.error(`Failed to reopen serial port ${this.serialPortInstance.path}:`, err);
+                    // 自动重连会周期性调用，错误细节交给调用方按需输出
+                    log.debug(`Failed to reopen serial port ${this.serialPortInstance.path}:`, err);
                 } else {
                     log.info(`Serial port ${this.serialPortInstance.path} reopened successfully`);
                 }

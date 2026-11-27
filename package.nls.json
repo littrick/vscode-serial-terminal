@@ -29,6 +29,8 @@
     "setting.serialPort.autoRefresh.description": "Monitor serial port plug/unplug and refresh the Available Serial Ports view automatically. Serial port presence is detected by polling.",
     "setting.serialPort.autoRefreshInterval.title": "Auto Refresh Interval (ms)",
     "setting.serialPort.autoRefreshInterval.description": "Polling interval in milliseconds for serial port detection. Minimum is 500 ms.",
+    "setting.serialPort.autoReconnect.title": "Auto Reconnect",
+    "setting.serialPort.autoReconnect.description": "Automatically try to reconnect when the serial port connection is lost. If the port path changes after the device is re-enumerated (for example, the COM number changes), automatic reconnection will fail and you need to reconnect manually.",
     "setting.serialPort.configurations.description": "Configuration options when opening a serial port. You can add additional options here.\nFor example `115200n81`\n - Baud rate `115200`\n - Parity `n(n|e|o)` where `n` means none, default is `n`\n - Data bits `8(5|6|7|8)`, default is `8`\n - Stop bits `1(1|1.5|2)`, default is `1`",
     "setting.log.savePath.title": "Log Path",
     "setting.log.savePath.description": "Set the directory path for saving logs. Changes take effect after reloading the window.\n - Path format can be: `c:\\log` or `/C:/log`\n - If set to empty, it will be automatically set to `$HOME/serialTerminal/log`\n - Click `Reset Setting` to reset this to the default path\n - If the configured directory does not exist, the extension will try to create it",

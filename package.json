@@ -365,6 +365,12 @@
           "minimum": 500,
           "markdownDescription": "%setting.serialPort.autoRefreshInterval.description%"
         },
+        "SerialTerminal.serialPort.autoReconnect": {
+          "title": "%setting.serialPort.autoReconnect.title%",
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "%setting.serialPort.autoReconnect.description%"
+        },
         "SerialTerminal.log.savePath": {
           "title": "%setting.log.savePath.title%",
           "type": "string",

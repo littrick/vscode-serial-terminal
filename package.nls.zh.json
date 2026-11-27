@@ -29,6 +29,8 @@
     "setting.serialPort.autoRefresh.description": "监控串口插拔并自动刷新「可用串口」视图。串口存在性通过轮询检测。",
     "setting.serialPort.autoRefreshInterval.title": "自动刷新间隔 (毫秒)",
     "setting.serialPort.autoRefreshInterval.description": "串口检测的轮询间隔，单位为毫秒，最小 500 毫秒。",
+    "setting.serialPort.autoReconnect.title": "串口自动重连",
+    "setting.serialPort.autoReconnect.description": "串口断开连接后自动尝试重连。若设备重新枚举后端口路径发生变化（例如 COM 号改变），自动重连将找不到原端口而失败，需要手动重新连接。",
     "setting.serialPort.configurations.description": "打开串行端口时的配置选项，您可以在此添加其他选项。\n例如 `115200n81`\n - 波特率 `115200`\n - 无奇偶校验位 `n(n|e|o)`，默认为 `n`\n - 数据位`8(5|6|7|8)`bit，默认为`8`\n - 停止位 `1(1|1.5|2)`bit, 默认为 `1`",
     "setting.log.savePath.title": "日志路径",
     "setting.log.savePath.description": "设置保存日志目录的路径, 设置后reload窗口后生效 \n - 路径的格式可以为: `c:\\log` 或者 `/C:/log` \n - 如果设置为空，它将自动被设置为`$HOME/serialTerminal/log` \n - 点击`重设此设置`, 插件会自动重置此为默认路径 \n - 如果设置的目录不存在，插件会尝试创建该目录",

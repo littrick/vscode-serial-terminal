@@ -1,9 +1,9 @@
-import { EventEmitter, l10n, Uri, Terminal as VsTerminal } from "vscode";
+import { EventEmitter, l10n, Uri, Terminal as VsTerminal, workspace } from "vscode";
 import * as fs from 'fs';
 import { Configuration, SerialPort } from "../serial/serialPort";
 import { Terminal } from "./terminal";
 import * as colors from 'colors';
-import { setting } from "../context/setting";
+import { setting, serialPortAutoReconnectKey } from "../context/setting";
 import { log } from "../logger";
 import * as utils from "../utils";
 import * as context from "../context/context";
@@ -23,6 +23,8 @@ class SerialTerminal {
     private logFile: Uri | undefined;
     private onClose: () => void = () => { };
     private onStateChange: () => void = () => { };
+    private reconnectTimer: NodeJS.Timeout | undefined;
+    private closed = false;
 
     private constructor(portPath: string, serialport: SerialPort, terminal: Terminal, isPty: boolean) {
         this.isPty = isPty;
@@ -30,6 +32,7 @@ class SerialTerminal {
         let cfg = serialport.config;
 
         serialport.addListener('open', () => {
+            this.stopReconnect();
             terminal.write(SerialTerminal.connectedFormat(portPath, cfg));
             this.onStateChange();
         });
@@ -38,10 +41,13 @@ class SerialTerminal {
         });
         serialport.addListener('close', () => {
             terminal.write(SerialTerminal.disconnectedFormat(portPath, cfg));
+            this.refreshReconnect();
             this.onStateChange();
         });
 
         terminal.addListener('close', () => {
+            this.closed = true;
+            this.stopReconnect();
             if (this.isRecordingLog()) {
                 this.stopRecord();
             }
@@ -54,6 +60,7 @@ class SerialTerminal {
 
         this.serialport = serialport;
         this.terminal = terminal;
+        this.refreshReconnect();
     }
 
     // TODO: 可以考虑作为常量放在外面
@@ -186,13 +193,53 @@ class SerialTerminal {
         return this.serialport.config;
     }
 
-    private async checkAndReopen() {
+    private async checkAndReopen(quiet: boolean = false) {
         if (!this.serialport.isOpen && !this.serialport.isOpening) {
             const err = await this.serialport.reopen();
             if (err) {
-                log.error(`Failed to reopen serial port ${this.serialport.name}`);
-                this.terminal.write(SerialTerminal.failedFormat(this.serialport.name, this.serialConfig(), err.message));
+                if (quiet) {
+                    log.debug(`Auto reconnect failed for ${this.serialport.name}: ${err.message}`);
+                } else {
+                    log.error(`Failed to reopen serial port ${this.serialport.name}`);
+                    this.terminal.write(SerialTerminal.failedFormat(this.serialport.name, this.serialConfig(), err.message));
+                }
             }
+        }
+    }
+
+    private static reconnectIntervalMs = 2000;
+
+    /**
+     * 根据设置与连接状态启动或停止自动重连。
+     * 终端已关闭、设置关闭或已连接时停止定时器。
+     */
+    refreshReconnect(enabled: boolean = setting.serialPortAutoReconnect) {
+        if (this.closed || !enabled || this.serialport.isOpen) {
+            this.stopReconnect();
+            return;
+        }
+        if (this.reconnectTimer) {
+            return;
+        }
+
+        log.info(`Auto reconnect enabled for ${this.serialport.name}`);
+        this.reconnectTimer = setInterval(() => {
+            if (this.closed || !setting.serialPortAutoReconnect) {
+                this.stopReconnect();
+                return;
+            }
+            if (this.serialport.isOpen || this.serialport.isOpening) {
+                return;
+            }
+            void this.checkAndReopen(true);
+        }, SerialTerminal.reconnectIntervalMs);
+    }
+
+    private stopReconnect() {
+        if (this.reconnectTimer) {
+            clearInterval(this.reconnectTimer);
+            this.reconnectTimer = undefined;
+            log.info(`Auto reconnect stopped for ${this.serialport.name}`);
         }
     }
 
@@ -253,6 +300,18 @@ class SerialTerminalManager {
     private terminals: Map<string, SerialTerminal> = new Map();
     private changeEmitter = new EventEmitter<void>();
     readonly onDidChangeTerminals = this.changeEmitter.event;
+
+    constructor() {
+        // 开关设置变化时立即更新已有终端的自动重连状态
+        workspace.onDidChangeConfiguration((event) => {
+            if (event.affectsConfiguration(serialPortAutoReconnectKey)) {
+                const enabled = workspace.getConfiguration().get<boolean>(serialPortAutoReconnectKey, false);
+                for (const terminal of this.terminals.values()) {
+                    terminal.refreshReconnect(enabled);
+                }
+            }
+        });
+    }
 
     async getOrCreateSerialPortTerminal(portPath: string, cfg: Configuration, isPty: boolean = false): Promise<SerialTerminal> {
         let exist = this.terminals.get(portPath);
