@@ -8,7 +8,8 @@ import { logSettingId, scriptSettingId, serialPortSettingId, setting } from './c
 import { SerialTerminal, serialTerminalManager } from './terminal/serialTerminal';
 import * as picker from './view/picker';
 import { validateFileName } from './view/fileNameValidation';
-import { getSelectedScriptFolder } from './view/scriptView';
+import { getSelectedScriptFolder, refreshScriptView } from './view/scriptView';
+import { refreshLogView } from './view/logView';
 
 function registerCommands(context: vscode.ExtensionContext) {
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -25,29 +26,22 @@ function registerCommands(context: vscode.ExtensionContext) {
 
         "serialTerminal.treeItem.openOnEditor": openTreeItemResource,
         "serialTerminal.treeItem.revealInExplorer": revealInExplorer,
+        "serialTerminal.treeItem.copyPath": copyPath,
+        "serialTerminal.treeItem.renameResource": renameTreeItem,
         "serialTerminal.treeItem.deleteResource": deleteResource,
 
         "serialTerminal.serialView.open": openSerialTerminal,
         "serialTerminal.serialView.openCustom": openCustomSerialTerminal,
-        "serialTerminal.serialView.refresh": updateSerialPortProvider,
+        "serialTerminal.refresh": refreshAllViews,
 
-        "serialTerminal.logView.openOnEditor": openLogOnEditor,
         "serialTerminal.logView.revealLogs": async () => await revealOrOpenInOS(setting.logSaveFolder),
-        "serialTerminal.logView.newFolder": () => createFolder(setting.logSaveFolder, "serialTerminal.logView.refresh"),
-        "serialTerminal.logView.renameResource": (context?: vscode.TreeItem) =>
-            renameResource(context, "serialTerminal.logView.refresh", {
-                hideExtension: true,
-            }),
+        "serialTerminal.logView.newFolder": () => createFolder(setting.logSaveFolder, "serialTerminal.refresh"),
 
         "serialTerminal.scriptView.newNotebook": createScriptNotebook,
         "serialTerminal.scriptView.revealNotebooks": async () => await revealOrOpenInOS(setting.noteBookFolder),
-        "serialTerminal.scriptView.renameResource": (context?: vscode.TreeItem) =>
-            renameResource(context, "serialTerminal.scriptView.refresh", {
-                allowedExtensions: [".md", ".mdnb"],
-            }),
         "serialTerminal.scriptView.newFolder": () => createFolder(
             getSelectedScriptFolder() ?? setting.noteBookFolder,
-            "serialTerminal.scriptView.refresh"
+            "serialTerminal.refresh"
         ),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -162,18 +156,61 @@ async function stopSaveLog() {
 
 }
 
-async function openTreeItemResource(context: vscode.TreeItem) {
-    if (!context.resourceUri) {
+// 日志与脚本视图共用打开命令，按节点的 contextValue 区分所属视图
+async function openTreeItemResource(context?: vscode.TreeItem) {
+    const uri = context?.resourceUri;
+    if (!uri) {
         return;
     }
-    log.info(`Opening resource: ${context.resourceUri.toString()}`);
+    log.info(`Opening resource: ${uri.toString()}`);
+
+    // 日志以只读方式打开，避免误编辑
+    if (context.contextValue?.startsWith("log")) {
+        await vscode.commands.executeCommand("vscode.open", uri);
+        const editor = vscode.window.activeTextEditor;
+        if (editor?.document.uri.toString() === uri.toString()) {
+            vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession");
+        }
+        return;
+    }
 
     // .md 默认由文本编辑器打开，开启设置后强制用 Script Notebook 的 md notebook 打开
-    if (setting.openMdAsNotebook && context.resourceUri.path.toLowerCase().endsWith('.md')) {
-        await vscode.commands.executeCommand("vscode.openWith", context.resourceUri, "mdnb");
+    if (setting.openMdAsNotebook && uri.path.toLowerCase().endsWith('.md')) {
+        await vscode.commands.executeCommand("vscode.openWith", uri, "mdnb");
     } else {
-        await vscode.commands.executeCommand("vscode.open", context.resourceUri);
+        await vscode.commands.executeCommand("vscode.open", uri);
     }
+}
+
+// 日志与脚本视图共用重命名命令，按节点的 contextValue 区分所属视图
+function renameTreeItem(context?: vscode.TreeItem) {
+    if (!context?.resourceUri) {
+        return;
+    }
+    if (context.contextValue?.startsWith("log")) {
+        return renameResource(context, "serialTerminal.refresh", {
+            hideExtension: true,
+        });
+    }
+    return renameResource(context, "serialTerminal.refresh", {
+        allowedExtensions: [".md", ".mdnb"],
+    });
+}
+
+// 三个视图共用刷新命令
+function refreshAllViews() {
+    updateSerialPortProvider();
+    refreshLogView();
+    refreshScriptView();
+}
+
+async function copyPath(context?: vscode.TreeItem) {
+    const uri = context?.resourceUri;
+    if (!uri) {
+        return;
+    }
+    await vscode.env.clipboard.writeText(uri.fsPath);
+    log.info(`Copied path: ${uri.fsPath}`);
 }
 
 async function revealInExplorer(context: vscode.TreeItem) {
@@ -357,14 +394,5 @@ async function deleteResource(context: vscode.TreeItem) {
     }
     await vscode.workspace.fs.delete(context.resourceUri, { recursive: true, useTrash: true });
 }
-
-async function openLogOnEditor(context: vscode.TreeItem) {
-    await vscode.commands.executeCommand("vscode.open", context.resourceUri);
-    let editor = vscode.window.activeTextEditor;
-    if (editor?.document.uri.toString() === context.resourceUri?.toString()) {
-        vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession");
-    }
-}
-
 
 export { registerCommands };

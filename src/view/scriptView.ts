@@ -4,6 +4,11 @@ import { FileDragAndDropController } from './fileDragAndDrop';
 import { setting } from '../context/setting';
 
 let scriptTreeView: vscode.TreeView<vscode.TreeItem> | undefined;
+let scriptProvider: FileTreeDataProvider | undefined;
+
+function refreshScriptView() {
+    scriptProvider?.refresh();
+}
 
 /**
  * 返回脚本视图中当前选中的目录。
@@ -38,11 +43,8 @@ function registerScriptView(context: vscode.ExtensionContext) {
         ),
     });
     scriptTreeView = view;
-    context.subscriptions.push(
-        view,
-        provider,
-        vscode.commands.registerCommand("serialTerminal.scriptView.refresh", () => provider.refresh())
-    );
+    scriptProvider = provider;
+    context.subscriptions.push(view, provider);
 }
 
-export { registerScriptView, getSelectedScriptFolder };
+export { registerScriptView, getSelectedScriptFolder, refreshScriptView };
