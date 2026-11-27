@@ -15,3 +15,11 @@ vsc-extension-quickstart.md
 # 子模块源码不打包
 submodules/**
 .gitmodules
+
+# 原生绑定的构建期文件不打包（运行时使用 prebuilds 中的二进制）
+node_modules/node-addon-api/**
+node_modules/serialport/node_modules/@serialport/bindings-cpp/src/**
+node_modules/serialport/node_modules/@serialport/bindings-cpp/binding.gyp
+
+# 桌面版 VS Code 用不到的 Android 预编译二进制
+node_modules/serialport/node_modules/@serialport/bindings-cpp/prebuilds/android-*/**
