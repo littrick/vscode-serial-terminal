@@ -12,6 +12,13 @@ import { getSelectedScriptFolder, refreshScriptView } from './view/scriptView';
 import { refreshLogView } from './view/logView';
 
 function registerCommands(context: vscode.ExtensionContext) {
+    // 在扩展内按设置前缀筛选，避免文本搜索误匹配其它扩展的设置
+    const openSettings = (query: string) =>
+        vscode.commands.executeCommand(
+            "workbench.action.openSettings",
+            `@ext:${context.extension.id} ${query}`
+        );
+
     /* eslint-disable @typescript-eslint/naming-convention */
     const commands: { [key: string]: (...args: any[]) => any; } =
     {
@@ -20,9 +27,9 @@ function registerCommands(context: vscode.ExtensionContext) {
 
         "serialTerminal.terminal.clear": () => vscode.commands.executeCommand("workbench.action.terminal.clear"),
 
-        "serialTerminal.setting.SerialPort": () => vscode.commands.executeCommand("workbench.action.openSettings", serialPortSettingId),
-        "serialTerminal.setting.Log": () => vscode.commands.executeCommand("workbench.action.openSettings", logSettingId),
-        "serialTerminal.setting.Notebook": () => vscode.commands.executeCommand("workbench.action.openSettings", scriptSettingId),
+        "serialTerminal.setting.SerialPort": () => openSettings(serialPortSettingId),
+        "serialTerminal.setting.Log": () => openSettings(logSettingId),
+        "serialTerminal.setting.Notebook": () => openSettings(scriptSettingId),
 
         "serialTerminal.treeItem.openOnEditor": openTreeItemResource,
         "serialTerminal.treeItem.revealInExplorer": revealInExplorer,
