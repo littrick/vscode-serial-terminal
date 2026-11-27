@@ -104,4 +104,4 @@ function registerSerialPortMonitor(context: vscode.ExtensionContext, onDidChange
     apply();
 }
 
-export { registerSerialPortMonitor, SerialPortMonitor };
+export { registerSerialPortMonitor };

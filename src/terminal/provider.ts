@@ -1,12 +1,12 @@
-import { CancellationToken, ExtensionContext, ProviderResult, TerminalProfile, TerminalProfileProvider, window } from "vscode";
+import { ExtensionContext, ProviderResult, TerminalProfile, TerminalProfileProvider, window } from "vscode";
 import { pickConfiguration, pickLogFile, pickSerialPort } from "../view/picker";
 import { log } from "../logger";
-import { SerialTerminal, serialTerminalManager } from "./serialTerminal";
+import { serialTerminalManager } from "./serialTerminal";
 import { setting } from "../context/setting";
 
 
 const provider = new (class implements TerminalProfileProvider {
-    provideTerminalProfile(token: CancellationToken): ProviderResult<TerminalProfile> {
+    provideTerminalProfile(): ProviderResult<TerminalProfile> {
         return new Promise<TerminalProfile>(async (resolve) => {
             let portPath = await pickSerialPort();
             if (!portPath) {

@@ -151,15 +151,6 @@ export {
     scriptSettingId,
 
     portConfigurationsKey,
-    serialPortAutoRefreshKey,
-    serialPortAutoRefreshIntervalKey,
-    logSaveFolderKey,
-    noteBookFolderKey,
-    autoSaveLogKey,
-    addingTimeStampKey,
-    filterSpecialCharsKey,
-    timeStampDurationKey,
-    openMdAsNotebookKey,
     setting,
     registerSetting
 };

@@ -79,7 +79,7 @@ class SerialTerminal {
     } | undefined;
 
     static new(portPath: string, cfg: Configuration, isPty: boolean = false): Promise<SerialTerminal> {
-        return new Promise<SerialTerminal>(async (resolve, reject) => {
+        return new Promise<SerialTerminal>(async (resolve) => {
             let terminal = new Terminal(this.terminalName(portPath, cfg), isPty);
 
             // 延时

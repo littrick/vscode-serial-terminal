@@ -123,7 +123,7 @@ async function openSerialTerminalByPath(portName: string) {
     newTerminal.show();
 }
 
-async function startSaveLog(context?: any) {
+async function startSaveLog() {
     const terminal = vscode.window.activeTerminal;
     if (!terminal) {
         log.error("No active terminal");
@@ -145,7 +145,7 @@ async function startSaveLog(context?: any) {
 }
 
 
-async function stopSaveLog(context?: any) {
+async function stopSaveLog() {
     const terminal = vscode.window.activeTerminal;
     if (!terminal) {
         log.error("No active terminal");

@@ -64,7 +64,7 @@ async function pickConfiguration(): Promise<Configuration | undefined> {
 }
 
 function portPickConfigurations(): Thenable<CommandQuickPickItem[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const items: CommandQuickPickItem[] = setting.portConfigurations.map((value) => { return { label: value }; });
 
         let separator: CommandQuickPickItem[] = [{

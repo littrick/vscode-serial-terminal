@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Event, ProviderResult, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem, l10n } from "vscode";
+import { Event, ProviderResult, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem } from "vscode";
 import { listSerialPort, serialInfoToString, serialPortPriority } from "../serial/serialInfo";
 import { serialTerminalManager } from "../terminal/serialTerminal";
 import { compareNames } from "../utils";
@@ -24,7 +24,7 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
     getTreeItem(element: TreeItem): TreeItem | Thenable<TreeItem> {
         return element;
     }
-    getChildren(element?: TreeItem | undefined): ProviderResult<TreeItem[]> {
+    getChildren(): ProviderResult<TreeItem[]> {
         return new Promise((resolve, reject) => {
             // 使用 serialport 模块获取可用的串口设备
             listSerialPort()
@@ -57,47 +57,11 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
 })();
 
 
-interface CommandQuickPickItem extends vscode.QuickPickItem {
-    label: string;
-    kind?: vscode.QuickPickItemKind | undefined;
-    description?: string | undefined;
-    detail?: string | undefined;
-    picked?: boolean | undefined;
-    alwaysShow?: boolean | undefined;
-    buttons?: readonly vscode.QuickInputButton[] | undefined;
-    command?: vscode.Command;
-}
-
 function updateSerialPortProvider() {
     serialPortProvider.update();
 }
 
-async function pickSerialPort(): Promise<string | undefined> {
-    const serialPortItems: Thenable<vscode.QuickPickItem[]> = new Promise((resolve, reject) => {
-        listSerialPort().then((ports) => {
-            const portItems: vscode.QuickPickItem[] = ports.map((port) => {
-                return { label: port.path, description: port.manufacturer };
-            });
-            resolve(portItems);
-        }).catch((error) => {
-            reject(error);
-        });
-    });
-
-    let port = await vscode.window.showQuickPick(serialPortItems, { placeHolder: l10n.t("please select a serial port") });
-    return port ? port.label : undefined;
-}
-
-interface SerialPortConfiguration {
-    baudrate: number,
-    parity: 'none' | 'even' | 'odd' | undefined,
-    dataBits: 5 | 6 | 7 | 8 | undefined,
-    stopBits: 1 | 1.5 | 2 | undefined,
-}
-
 export {
-    SerialPortConfiguration,
-    pickSerialPort,
     registerSerialPortView,
     updateSerialPortProvider,
 };

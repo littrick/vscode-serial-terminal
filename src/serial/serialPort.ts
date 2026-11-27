@@ -1,7 +1,5 @@
-import { EventEmitter } from "vscode";
 import { log } from "../logger";
 import { SerialPort as NativeSerialPort } from "serialport";
-import { resolve } from "path";
 
 interface Configuration {
     baudrate: number,
