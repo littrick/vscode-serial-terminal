@@ -1,8 +1,7 @@
 import * as vscode from "vscode";
 import { Event, ProviderResult, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem } from "vscode";
-import { listSerialPort, serialInfoToString, serialPortPriority } from "../serial/serialInfo";
+import { listSerialPort, serialInfoToString, sortSerialPorts } from "../serial/serialInfo";
 import { serialTerminalManager } from "../terminal/serialTerminal";
-import { compareNames } from "../utils";
 
 
 function registerSerialPortView(context: vscode.ExtensionContext) {
@@ -29,12 +28,7 @@ const serialPortProvider = new (class implements TreeDataProvider<TreeItem> {
             // 使用 serialport 模块获取可用的串口设备
             listSerialPort()
                 .then((ports) => {
-                    const treeItem = [...ports]
-                        .sort((a, b) => {
-                            // 可用性优先（USB 串口在前、蓝牙串口在后），同优先级按名称排序
-                            const priorityDiff = serialPortPriority(a) - serialPortPriority(b);
-                            return priorityDiff !== 0 ? priorityDiff : compareNames(a.path, b.path);
-                        })
+                    const treeItem = sortSerialPorts(ports)
                         .map((port) => {
                             const info = (port as any).friendlyName || port.manufacturer;
                             const isOpen = serialTerminalManager.getSerialPortTerminal(port.path)?.isOpen() ?? false;

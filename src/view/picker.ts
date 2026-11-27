@@ -1,5 +1,5 @@
 import { window, l10n, QuickPickItem, commands, QuickPickItemKind, QuickInputButton, Command, Uri } from "vscode";
-import { listSerialPort } from "../serial/serialInfo";
+import { listSerialPort, serialPortPriority, sortSerialPorts } from "../serial/serialInfo";
 import { Configuration } from "../serial/serialPort";
 import { portConfigurationsKey, setting } from "../context/setting";
 import { log } from "../logger";
@@ -10,9 +10,17 @@ import { validateFileName } from "./fileNameValidation";
 async function pickSerialPort(): Promise<string | undefined> {
     const serialPortItems: Thenable<QuickPickItem[]> = new Promise((resolve, reject) => {
         listSerialPort().then((ports) => {
-            const portItems: QuickPickItem[] = ports.map((port) => {
-                return { label: port.path, description: port.manufacturer };
-            });
+            const portItems: QuickPickItem[] = [];
+            let lastPriority: number | undefined;
+            // 按优先级分组，组间插入分割线（例如 USB 串口与蓝牙串口之间）
+            for (const port of sortSerialPorts(ports)) {
+                const priority = serialPortPriority(port);
+                if (lastPriority !== undefined && priority !== lastPriority) {
+                    portItems.push({ label: "", kind: QuickPickItemKind.Separator });
+                }
+                portItems.push({ label: port.path, description: port.manufacturer });
+                lastPriority = priority;
+            }
             resolve(portItems);
         }).catch((error) => {
             reject(error);
